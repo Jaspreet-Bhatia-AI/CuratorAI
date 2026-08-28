@@ -87,9 +87,10 @@ if btn:
         with st.spinner(f"Downloading the {platform} {Type}..."):
             if platform=="YouTube":
                 file = download_yt(url, Type, "playlist?list=" in url)
-                st.success("Download complete!")
-                st.balloons()
-                preview(file, Type)
+                if file:
+                    st.success("Download complete!")
+                    st.balloons()
+                    preview(file, Type)
             else:
                 st.page_link(label="Go to Instagram Downloader(Click Here)", page="https://snapinsta.to/en46")
     else:
