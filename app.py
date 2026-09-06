@@ -16,17 +16,18 @@ st.subheader("Tell the AI what you want to learn or listen to. It will build a p
 
 # ----------------- AI LOGIC -----------------
 def generate_roadmap(user_query):
-    system_prompt = """You are an expert AI curriculum builder and media curator.
-    The user will give you a goal (e.g., 'learn OOPs in python', 'romantic songs').
+    system_prompt = """You are an elite AI curriculum architect and YouTube curation expert.
+    The user will give you a request (e.g., 'Learn Python OOP', 'Late night drive songs', 'Space documentary').
     
-    1. Determine if the request is 'education', 'music', or 'general'.
-    2. For educational goals, define a comprehensive curriculum INDEX in "roadmap_overview". 
-    3. Generate between 1 and 50 steps (videos) depending on the scope.
-    4. For each step, provide a highly optimized YouTube search query AND list exactly which sub-topics are covered.
+    1. Determine if the category is 'education', 'music', or 'entertainment/general'.
+    2. Define a comprehensive, nested INDEX in "roadmap_overview".
+    3. Generate a logical sequence of steps (1 to 50 videos).
     
-    IMPORTANT RULES:
-    - DO NOT create overlapping or repetitive topics.
-    - If the user asks for MUSIC (moods, genres, or artists), highly prioritize queries for long-form "Mashups", "Jukeboxes", or "Compilations" (e.g. "Top 50 Romantic Songs Mashup").
+    IMPORTANT CURATION RULES:
+    - You must write highly-optimized YouTube search queries. Use keywords like "Full Course", "Masterclass", "2024", or "4K" for education/documentaries.
+    - For MUSIC, strongly prioritize long-form "Mashups", "Jukeboxes", or "Compilations".
+    - DO NOT create overlapping topics.
+    - Provide a "rationale" explaining exactly WHY you chose this step and what the user will gain from it.
     
     Output ONLY raw JSON with this exact schema:
     {
@@ -40,12 +41,12 @@ def generate_roadmap(user_query):
       ],
       "curriculum": [
         {
-          "search_query": "Python OOP Classes, objects, and self tutorial",
-          "topics_covered": ["Classes and Objects"]
+          "search_query": "Python OOP Classes and Objects full tutorial 2024",
+          "topics_covered": ["Classes and Objects"],
+          "rationale": "Before diving into complex inheritance, you must perfectly understand how to define a Class and use the 'self' keyword."
         }
       ]
-    }
-    For music/general, adapt the structure. For music, list the Vibe/Artist as main_topic, and prioritize Mashup queries!"""
+    }"""
     
     try:
         response = client.chat.completions.create(
@@ -67,14 +68,16 @@ def search_best_video(query, seen_urls):
         "quiet": True,
         "no_warnings": True,
         "extract_flat": True,
-        "extractor_args": {"youtube": ["player_client=tv"]},
-        "cookiesfrombrowser": ("brave",)
+        "noplaylist": True,
+        "cookiesfrombrowser": ("brave",),
+        "extractor_args": {"youtube": ["player_client=tv"]}
     }
     ydl_opts_full = {
         "quiet": True,
         "no_warnings": True,
-        "extractor_args": {"youtube": ["player_client=tv"]},
-        "cookiesfrombrowser": ("brave",)
+        "noplaylist": True,
+        "cookiesfrombrowser": ("brave",),
+        "extractor_args": {"youtube": ["player_client=tv"]}
     }
     
     try:
@@ -118,7 +121,6 @@ def search_best_video(query, seen_urls):
 def download_yt(url, Type, folder_name=""):
     base_dir = os.path.expanduser("~/Downloads")
     
-    # Clean the user's query so it's a safe folder name (removes invalid characters)
     safe_folder = re.sub(r'[\\/*?:"<>|]', "", folder_name).strip() if folder_name else "AI_Downloads"
     downloads_dir = os.path.join(base_dir, safe_folder)
     
@@ -141,8 +143,9 @@ def download_yt(url, Type, folder_name=""):
             "outtmpl": outtmpl,
             "quiet": True,
             "no_warnings": True,
-            "extractor_args": {"youtube": ["player_client=tv"]},
-        "cookiesfrombrowser": ("brave",)
+            "noplaylist": True,
+            "cookiesfrombrowser": ("brave",),
+            "extractor_args": {"youtube": ["player_client=tv"]}
         }
         with yt(ydl_opts) as yd:
             info = yd.extract_info(url, download=True)
@@ -172,7 +175,7 @@ if st.button("Generate AI Plan"):
             if roadmap:
                 st.session_state['roadmap'] = roadmap
                 st.session_state['videos'] = []
-                st.session_state['original_query'] = user_query  # Save query for the folder name
+                st.session_state['original_query'] = user_query
                 
                 curriculum = roadmap.get('curriculum', [])
                 my_bar = st.progress(0, text="Searching YouTube for the best content...")
@@ -183,6 +186,7 @@ if st.button("Generate AI Plan"):
                     best_video = search_best_video(query, seen_urls)
                     if best_video:
                         best_video['topics_covered'] = step.get('topics_covered', [])
+                        best_video['rationale'] = step.get('rationale', '')
                         st.session_state['videos'].append(best_video)
                     
                     my_bar.progress((i + 1) / max(1, len(curriculum)), text=f"Found: {best_video['title'] if best_video else 'Skipped'}")
@@ -225,6 +229,10 @@ if 'roadmap' in st.session_state and 'videos' in st.session_state:
         with c2:
             st.write(f"**{vid['title']}**")
             
+            # AI's Reasoning!
+            if vid.get('rationale'):
+                st.info(f"💡 **Why this video?** {vid['rationale']}")
+            
             if vid.get('topics_covered'):
                 st.caption(f"🎯 **Covers:** {', '.join(vid['topics_covered'])}")
                 
@@ -256,7 +264,6 @@ if 'roadmap' in st.session_state and 'videos' in st.session_state:
             progress_bar = st.progress(0, text="Starting downloads...")
             success_count = 0
             
-            # Retrieve the query to name the folder!
             folder_name = st.session_state.get('original_query', 'AI_Downloads')
             
             for i, url in enumerate(selected_urls):
