@@ -27,3 +27,6 @@ __pycache__/
 .Trashes
 ehthumbs.db
 Thumbs.db
+.gitignore
+# Private Commands
+COMMANDS_CHEATSHEET.txt
