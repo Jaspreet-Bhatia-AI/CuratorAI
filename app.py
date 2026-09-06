@@ -2,12 +2,15 @@ from yt_dlp import YoutubeDL as yt
 import os
 import json
 import re
+import shutil
 import streamlit as st
 from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 client = Groq()
+
+node_path = shutil.which("node")
 
 st.set_page_config(page_title="AI Curriculum Downloader", page_icon="🎓", layout="centered")
 
@@ -87,6 +90,10 @@ def search_best_video(query, seen_urls):
         "extractor_args": {"youtube": ["player_client=default"]}
     }
     
+    if node_path:
+        ydl_opts_fast["js_runtimes"] = [f"node:{node_path}"]
+        ydl_opts_full["js_runtimes"] = [f"node:{node_path}"]
+    
     try:
         with yt(ydl_opts_fast) as yd:
             info = yd.extract_info(f"ytsearch5:{query}", download=False)
@@ -154,6 +161,9 @@ def download_yt(url, Type, folder_name=""):
             "cookiesfrombrowser": ("brave",),
             "extractor_args": {"youtube": ["player_client=default"]}
         }
+        if node_path:
+            ydl_opts["js_runtimes"] = [f"node:{node_path}"]
+            
         with yt(ydl_opts) as yd:
             info = yd.extract_info(url, download=True)
             temp_name = yd.prepare_filename(info)
