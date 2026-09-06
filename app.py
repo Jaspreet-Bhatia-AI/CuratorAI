@@ -91,8 +91,8 @@ def search_best_video(query, seen_urls):
     }
     
     if node_path:
-        ydl_opts_fast["js_runtimes"] = [f"node:{node_path}"]
-        ydl_opts_full["js_runtimes"] = [f"node:{node_path}"]
+        ydl_opts_fast["js_runtimes"] = {'node': {'binary': node_path}}
+        ydl_opts_full["js_runtimes"] = {'node': {'binary': node_path}}
     
     try:
         with yt(ydl_opts_fast) as yd:
@@ -162,7 +162,7 @@ def download_yt(url, Type, folder_name=""):
             "extractor_args": {"youtube": ["player_client=default"]}
         }
         if node_path:
-            ydl_opts["js_runtimes"] = [f"node:{node_path}"]
+            ydl_opts["js_runtimes"] = {'node': {'binary': node_path}}
             
         with yt(ydl_opts) as yd:
             info = yd.extract_info(url, download=True)
