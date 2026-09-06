@@ -1,20 +1,12 @@
-# YouTube & Instagram Media Downloader
+# YouTube Video Downloader
 
-A sleek, fast, and highly capable Media Downloader built entirely in Python. It currently provides a simple web interface to extract, download, and preview high-quality video and audio directly from YouTube, with Instagram support on the way!
+A sleek, fast, and highly capable Media Downloader built entirely in Python. It currently provides a simple web interface to extract, download, and preview high-quality video and audio directly from YouTube.
 
 ## 💡 About The Project
 
-This project was built to simplify the often clunky process of downloading media from YouTube (and soon Instagram). Unlike many ad-heavy web downloaders, this app offers a clean, straightforward interface that handles both individual videos and entire playlists seamlessly. 
+This project is built to simplify the often clunky process of downloading media from YouTube. Unlike many ad-heavy web downloaders, this app offers a clean, straightforward interface that handles both individual videos and entire playlists seamlessly. 
 
 The core philosophy of this project is **simplicity**. It strips away complex configurations and gives the user exactly what they want: a URL input, a choice between Video (MP4) or Audio (MP3), and an instant download button.
-
-## 🔜 Coming Soon: Instagram Downloader
-We are currently actively developing the **Instagram Downloader** feature! Soon, you will be able to simply paste an Instagram link and natively download:
-- Instagram Reels
-- Instagram Posts (Videos and Photos)
-- Instagram Audio
-
-Stay tuned as these features are rolled out to the main application interface!
 
 ## 🏗️ How It Was Made
 
