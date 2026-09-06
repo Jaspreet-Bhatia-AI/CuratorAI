@@ -21,14 +21,13 @@ def generate_roadmap(user_query):
     
     1. Determine if the category is 'education', 'music', or 'entertainment/general'.
     2. Define a comprehensive, nested INDEX in "roadmap_overview".
-       - For MUSIC: If the user asks for a specific amount of songs (e.g. 30 songs), you MUST generate EXACTLY that many specific song titles as 'sub_topics' in the index. DO NOT TRUNCATE. DO NOT USE 'etc'. Generate all 30!
-    3. Generate a logical sequence of steps/videos in the "curriculum" array.
-       - You must generate enough videos to cover ALL the songs/topics you listed in the index.
+       - For MUSIC: If the user asks for a specific amount (e.g. 30 songs), you MUST generate EXACTLY 30 specific song titles as 'sub_topics'. DO NOT TRUNCATE.
+    3. Generate the actual videos in the "curriculum" array.
     
     IMPORTANT CURATION RULES:
-    - You must write highly-optimized YouTube search queries. Use keywords like "Full Course", "Masterclass", "2024", or "4K" for education/documentaries.
-    - For MUSIC: You can generate queries for individual songs OR long-form "Mashups". 
-    - CRITICAL RULE: In the "topics_covered" array for each video, you MUST list the exact song names (or educational topics) from the roadmap that are covered in that specific video. If one Mashup video contains 10 songs, list all 10 specific song names in that video's "topics_covered" array!
+    - You must write highly-optimized YouTube search queries.
+    - FOR NUMBERED MUSIC REQUESTS (e.g. '30 songs'): You MUST generate EXACTLY that many items in the "curriculum" array (e.g. 30 items). Map exactly ONE song per video! DO NOT group them into mashups! Write the search query as "Song Name Artist Audio".
+    - FOR GENERAL MUSIC REQUESTS (no specific number): Prioritize long-form "Mashups" and "Jukeboxes".
     - DO NOT create overlapping topics for education.
     - Provide a "rationale" explaining exactly WHY you chose this step.
     
@@ -39,14 +38,19 @@ def generate_roadmap(user_query):
       "roadmap_overview": [
         {
           "main_topic": "Heartbreak Anthems",
-          "sub_topics": ["Channa Mereya", "Tum Hi Ho", "Agar Tum Saath Ho"]
+          "sub_topics": ["Channa Mereya", "Tum Hi Ho"]
         }
       ],
       "curriculum": [
         {
-          "search_query": "Channa Mereya Tum Hi Ho Agar Tum Saath Ho Mashup Audio",
-          "topics_covered": ["Channa Mereya", "Tum Hi Ho", "Agar Tum Saath Ho"],
-          "rationale": "I found a mashup that perfectly combines these 3 requested emotional tracks into a single uninterrupted audio experience."
+          "search_query": "Channa Mereya official audio",
+          "topics_covered": ["Channa Mereya"],
+          "rationale": "A timeless classic that perfectly fits the sad vibe requested."
+        },
+        {
+          "search_query": "Tum Hi Ho Arijit Singh audio",
+          "topics_covered": ["Tum Hi Ho"],
+          "rationale": "One of the most iconic heartbreak songs."
         }
       ]
     }"""
