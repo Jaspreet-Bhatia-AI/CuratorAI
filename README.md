@@ -4,15 +4,15 @@ An intelligent, AI-powered application that takes a simple goal (e.g., "Learn Py
 
 Built with **Python**, **Streamlit**, **yt-dlp**, and the **Groq API**.
 
-## ✨ Features
-* **🧠 AI Curriculum Generation:** Uses advanced LLMs (via Groq) to break down massive educational goals into step-by-step, non-repetitive learning roadmaps.
-* **🎶 Smart Music Curation:** Automatically prioritizes full-length "Mashups", "Jukeboxes", and "Compilations" when searching for music vibes/genres, complete with interactive tracklists.
-* **📥 Batch Downloading:** Select the videos you want and download them all at once as MP4 (Video) or MP3 (Audio).
-* **📁 Auto-Organization:** Downloads are safely grouped into clean folders inside your `Downloads` directory, named exactly after your prompt.
+## Features
+* **AI Curriculum Generation:** Uses advanced LLMs (via Groq) to break down massive educational goals into step-by-step, non-repetitive learning roadmaps.
+* **Smart Music Curation:** Automatically prioritizes full-length "Mashups", "Jukeboxes", and "Compilations" when searching for music vibes/genres, complete with interactive tracklists.
+* **Batch Downloading:** Select the videos you want and download them all at once as MP4 (Video) or MP3 (Audio).
+* **Auto-Organization:** Downloads are safely grouped into clean folders inside your `Downloads` directory, named exactly after your prompt.
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### 1. Prerequisites
 * **Python 3.8+** installed on your system.
