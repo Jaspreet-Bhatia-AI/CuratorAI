@@ -17,33 +17,35 @@ st.subheader("Tell the AI what you want to learn or listen to. It will build a p
 # ----------------- AI LOGIC -----------------
 def generate_roadmap(user_query):
     system_prompt = """You are an elite AI curriculum architect and YouTube curation expert.
-    The user will give you a request (e.g., 'Learn Python OOP', 'Late night drive songs', 'Space documentary').
+    The user will give you a request (e.g., 'Learn Python OOP', '30 sad songs in hindi').
     
     1. Determine if the category is 'education', 'music', or 'entertainment/general'.
     2. Define a comprehensive, nested INDEX in "roadmap_overview".
+       - For MUSIC: If the user asks for a specific amount of songs (e.g. 30 songs), you MUST generate exactly that many specific song titles as 'sub_topics' in the index.
     3. Generate a logical sequence of steps (1 to 50 videos).
     
     IMPORTANT CURATION RULES:
     - You must write highly-optimized YouTube search queries. Use keywords like "Full Course", "Masterclass", "2024", or "4K" for education/documentaries.
-    - For MUSIC, strongly prioritize long-form "Mashups", "Jukeboxes", or "Compilations".
-    - DO NOT create overlapping topics.
-    - Provide a "rationale" explaining exactly WHY you chose this step and what the user will gain from it.
+    - For MUSIC: You can generate queries for individual songs OR long-form "Mashups". 
+    - CRITICAL RULE: In the "topics_covered" array for each video, you MUST list the exact song names (or educational topics) from the roadmap that are covered in that specific video. If one Mashup video contains 15 songs, list all 15 specific song names in that video's "topics_covered" array!
+    - DO NOT create overlapping topics for education.
+    - Provide a "rationale" explaining exactly WHY you chose this step.
     
     Output ONLY raw JSON with this exact schema:
     {
-      "type": "education",
-      "title": "Mastering OOPs in Python",
+      "type": "music",
+      "title": "Ultimate Hindi Sad Songs Collection",
       "roadmap_overview": [
         {
-          "main_topic": "OOP Basics",
-          "sub_topics": ["Classes and Objects", "The self keyword"]
+          "main_topic": "Heartbreak Anthems",
+          "sub_topics": ["Channa Mereya", "Tum Hi Ho", "Agar Tum Saath Ho"]
         }
       ],
       "curriculum": [
         {
-          "search_query": "Python OOP Classes and Objects full tutorial 2024",
-          "topics_covered": ["Classes and Objects"],
-          "rationale": "Before diving into complex inheritance, you must perfectly understand how to define a Class and use the 'self' keyword."
+          "search_query": "Channa Mereya Tum Hi Ho Agar Tum Saath Ho Mashup Audio",
+          "topics_covered": ["Channa Mereya", "Tum Hi Ho", "Agar Tum Saath Ho"],
+          "rationale": "I found a mashup that perfectly combines these 3 requested emotional tracks into a single uninterrupted audio experience."
         }
       ]
     }"""
@@ -201,7 +203,7 @@ if 'roadmap' in st.session_state and 'videos' in st.session_state:
     st.header(f"🧠 {roadmap.get('title', 'Your Custom Plan')}")
     
     if roadmap.get('roadmap_overview'):
-        st.write("### 📑 Course Index")
+        st.write("### 📑 Course / Song Index")
         overview = roadmap['roadmap_overview']
         
         if len(overview) > 0 and isinstance(overview[0], str):
@@ -217,7 +219,7 @@ if 'roadmap' in st.session_state and 'videos' in st.session_state:
                     st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp; 🔹 {sub}")
         
     st.write("---")
-    st.write("### 📺 Curated Videos:")
+    st.write("### 📺 Curated Media:")
     
     selected_urls = []
     
@@ -229,12 +231,11 @@ if 'roadmap' in st.session_state and 'videos' in st.session_state:
         with c2:
             st.write(f"**{vid['title']}**")
             
-            # AI's Reasoning!
             if vid.get('rationale'):
                 st.info(f"💡 **Why this video?** {vid['rationale']}")
             
             if vid.get('topics_covered'):
-                st.caption(f"🎯 **Covers:** {', '.join(vid['topics_covered'])}")
+                st.caption(f"🎯 **Contains:** {', '.join(vid['topics_covered'])}")
                 
             stats = []
             if vid.get('views'):
@@ -246,7 +247,7 @@ if 'roadmap' in st.session_state and 'videos' in st.session_state:
                 st.write(" | ".join(stats))
                 
             if vid.get('description'):
-                with st.expander("📜 View Tracklist & Description"):
+                with st.expander("📜 View Full Description & Tracklist"):
                     st.text(vid['description'])
                 
         with c3:
