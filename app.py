@@ -72,14 +72,14 @@ def search_best_video(query, seen_urls):
         "extract_flat": True,
         "noplaylist": True,
         "cookiesfrombrowser": ("brave",),
-        "extractor_args": {"youtube": ["player_client=tv"]}
+        "extractor_args": {"youtube": ["player_client=default"]}
     }
     ydl_opts_full = {
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
         "cookiesfrombrowser": ("brave",),
-        "extractor_args": {"youtube": ["player_client=tv"]}
+        "extractor_args": {"youtube": ["player_client=default"]}
     }
     
     try:
@@ -147,7 +147,7 @@ def download_yt(url, Type, folder_name=""):
             "no_warnings": True,
             "noplaylist": True,
             "cookiesfrombrowser": ("brave",),
-            "extractor_args": {"youtube": ["player_client=tv"]}
+            "extractor_args": {"youtube": ["player_client=default"]}
         }
         with yt(ydl_opts) as yd:
             info = yd.extract_info(url, download=True)
