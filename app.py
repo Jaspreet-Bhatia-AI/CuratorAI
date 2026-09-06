@@ -1,11 +1,11 @@
 from yt_dlp import YoutubeDL as yt
 import os
 import json
+import re
 import streamlit as st
 from groq import Groq
-
-# Inject API Key securely into the environment for this script
 from dotenv import load_dotenv
+
 load_dotenv()
 client = Groq()
 
@@ -92,7 +92,6 @@ def search_best_video(query, seen_urls):
                     if url not in seen_urls:
                         seen_urls.add(url)
                         
-                        # We found the best URL! Now fetch its FULL description/tracklist
                         full_desc = ""
                         try:
                             with yt(ydl_opts_full) as yd_full:
@@ -114,8 +113,15 @@ def search_best_video(query, seen_urls):
     return None
 
 # ----------------- DOWNLOAD LOGIC -----------------
-def download_yt(url, Type):
-    downloads_dir = os.path.expanduser("~/Downloads")
+def download_yt(url, Type, folder_name=""):
+    base_dir = os.path.expanduser("~/Downloads")
+    
+    # Clean the user's query so it's a safe folder name (removes invalid characters)
+    safe_folder = re.sub(r'[\\/*?:"<>|]', "", folder_name).strip() if folder_name else "AI_Downloads"
+    downloads_dir = os.path.join(base_dir, safe_folder)
+    
+    if not os.path.exists(downloads_dir):
+        os.makedirs(downloads_dir)
     
     if Type == "Video":
         format = "bestvideo[ext=mp4][vcodec^=avc]+bestaudio[ext=m4a]/best[ext=mp4]/best"
@@ -163,6 +169,7 @@ if st.button("Generate AI Plan"):
             if roadmap:
                 st.session_state['roadmap'] = roadmap
                 st.session_state['videos'] = []
+                st.session_state['original_query'] = user_query  # Save query for the folder name
                 
                 curriculum = roadmap.get('curriculum', [])
                 my_bar = st.progress(0, text="Searching YouTube for the best content...")
@@ -227,7 +234,6 @@ if 'roadmap' in st.session_state and 'videos' in st.session_state:
             if stats:
                 st.write(" | ".join(stats))
                 
-            # NEW: Expandable Tracklist / Description
             if vid.get('description'):
                 with st.expander("📜 View Tracklist & Description"):
                     st.text(vid['description'])
@@ -247,11 +253,14 @@ if 'roadmap' in st.session_state and 'videos' in st.session_state:
             progress_bar = st.progress(0, text="Starting downloads...")
             success_count = 0
             
+            # Retrieve the query to name the folder!
+            folder_name = st.session_state.get('original_query', 'AI_Downloads')
+            
             for i, url in enumerate(selected_urls):
                 progress_bar.progress(i / len(selected_urls), text=f"Downloading item {i+1} of {len(selected_urls)}...")
-                if download_yt(url, Type):
+                if download_yt(url, Type, folder_name):
                     success_count += 1
                     
             progress_bar.progress(1.0, text="Finished!")
-            st.success(f"Successfully downloaded {success_count} items directly to your Downloads folder!")
+            st.success(f"Successfully downloaded {success_count} items to: Downloads/{folder_name}")
             st.balloons()
