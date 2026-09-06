@@ -21,13 +21,14 @@ def generate_roadmap(user_query):
     
     1. Determine if the category is 'education', 'music', or 'entertainment/general'.
     2. Define a comprehensive, nested INDEX in "roadmap_overview".
-       - For MUSIC: If the user asks for a specific amount of songs (e.g. 30 songs), you MUST generate exactly that many specific song titles as 'sub_topics' in the index.
-    3. Generate a logical sequence of steps (1 to 50 videos).
+       - For MUSIC: If the user asks for a specific amount of songs (e.g. 30 songs), you MUST generate EXACTLY that many specific song titles as 'sub_topics' in the index. DO NOT TRUNCATE. DO NOT USE 'etc'. Generate all 30!
+    3. Generate a logical sequence of steps/videos in the "curriculum" array.
+       - You must generate enough videos to cover ALL the songs/topics you listed in the index.
     
     IMPORTANT CURATION RULES:
     - You must write highly-optimized YouTube search queries. Use keywords like "Full Course", "Masterclass", "2024", or "4K" for education/documentaries.
     - For MUSIC: You can generate queries for individual songs OR long-form "Mashups". 
-    - CRITICAL RULE: In the "topics_covered" array for each video, you MUST list the exact song names (or educational topics) from the roadmap that are covered in that specific video. If one Mashup video contains 15 songs, list all 15 specific song names in that video's "topics_covered" array!
+    - CRITICAL RULE: In the "topics_covered" array for each video, you MUST list the exact song names (or educational topics) from the roadmap that are covered in that specific video. If one Mashup video contains 10 songs, list all 10 specific song names in that video's "topics_covered" array!
     - DO NOT create overlapping topics for education.
     - Provide a "rationale" explaining exactly WHY you chose this step.
     
