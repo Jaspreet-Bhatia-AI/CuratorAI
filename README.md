@@ -1,28 +1,67 @@
-# YouTube Video Downloader
+# 🎓 AI YouTube Curriculum & Music Downloader
 
-A sleek, fast, and highly capable Media Downloader built entirely in Python. It currently provides a simple web interface to extract, download, and preview high-quality video and audio directly from YouTube.
+An intelligent, AI-powered application that takes a simple goal (e.g., "Learn Python from scratch" or "Top 20 Romantic Songs") and automatically generates a structured learning roadmap or playlist. It then hunts down the best, highest-viewed videos on YouTube, presents them in a beautiful UI, and batch-downloads them directly to your computer.
 
-## 💡 About The Project
+Built with **Python**, **Streamlit**, **yt-dlp**, and the **Groq API**.
 
-This project is built to simplify the often clunky process of downloading media from YouTube. Unlike many ad-heavy web downloaders, this app offers a clean, straightforward interface that handles both individual videos and entire playlists seamlessly. 
+## ✨ Features
+* **🧠 AI Curriculum Generation:** Uses advanced LLMs (via Groq) to break down massive educational goals into step-by-step, non-repetitive learning roadmaps.
+* **🎶 Smart Music Curation:** Automatically prioritizes full-length "Mashups", "Jukeboxes", and "Compilations" when searching for music vibes/genres, complete with interactive tracklists.
+* **📥 Batch Downloading:** Select the videos you want and download them all at once as MP4 (Video) or MP3 (Audio).
+* **📁 Auto-Organization:** Downloads are safely grouped into clean folders inside your `Downloads` directory, named exactly after your prompt.
 
-The core philosophy of this project is **simplicity**. It strips away complex configurations and gives the user exactly what they want: a URL input, a choice between Video (MP4) or Audio (MP3), and an instant download button.
+---
 
-## 🏗️ How It Was Made
+## 🚀 Getting Started
 
-The application is built using a modern Python tech stack, focusing on two main components:
+### 1. Prerequisites
+* **Python 3.8+** installed on your system.
+* **FFmpeg** installed (Required by `yt-dlp` to convert videos to MP3 audio).
+  * *Ubuntu/Linux:* `sudo apt install ffmpeg`
+  * *Mac:* `brew install ffmpeg`
+  * *Windows:* Download via `winget install ffmpeg`
+* A **Groq API Key** (You can get one for free at [console.groq.com](https://console.groq.com)).
 
-### 1. The Frontend (Streamlit)
-The user interface is powered by **[Streamlit](https://streamlit.io/)**. Streamlit allows us to rapidly build a reactive web application purely in Python without writing raw HTML or JavaScript. 
-- It handles state management (like showing loading balloons and spinners while files download).
-- It dynamically generates UI components. For example, if a user downloads a playlist of 10 songs, the app dynamically loops through the downloaded folder and renders 10 distinct audio players and 10 unique download buttons on the fly.
+### 2. Installation
+Clone the repository and install the required Python packages:
 
-### 2. The Engine (yt-dlp)
-The heavy lifting of extracting media from YouTube is handled by **[yt-dlp](https://github.com/yt-dlp/yt-dlp)**, an incredibly powerful media downloader.
-- **Dynamic Configuration:** We pass dynamic option dictionaries to `yt-dlp` depending on the user's request. If the user wants audio, we inject the `FFmpegExtractAudio` post-processor into the code to automatically rip the audio and convert it to a 192kbps MP3.
-- **Intelligent Routing:** The Python logic automatically detects if a URL is a standard video or a full playlist. 
-  - For single videos, it extracts the file, cleans up the filename, and returns the single file path.
-  - For playlists, it saves the media into a dedicated folder based on the playlist title, and returns a compiled list of all the downloaded files so the UI can render them in a batch.
+```bash
+git clone https://github.com/Jaspreet-Bhatia-AI/youtube-downloader.git
+cd youtube-downloader
 
-## 🚀 Deployment Next Steps
-This project is designed to be easily deployable to modern cloud hosting platforms, allowing users to access the downloader from anywhere!
+# (Optional but recommended) Create a virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 3. Setup your API Key
+Create a hidden `.env` file in the root directory to store your Groq API key securely. 
+
+```bash
+touch .env
+```
+Open the `.env` file and add your key like this:
+```env
+GROQ_API_KEY=gsk_your_api_key_here
+```
+*(Note: `.env` is included in `.gitignore`, so your key will never be uploaded to GitHub).*
+
+### 4. Run the App
+Launch the Streamlit web interface:
+```bash
+streamlit run app.py
+```
+
+---
+
+## 🛠️ How to Use
+1. Open the local URL provided by Streamlit (usually `http://localhost:8501`).
+2. Type a goal into the search bar (e.g., *"Complete guide to Object Oriented Programming"* or *"Late night drive lofi music"*).
+3. Click **Generate AI Plan**. 
+4. Review the generated Course Index / Tracklists.
+5. Check or uncheck the videos you want to keep.
+6. Select your preferred format (**Video** or **Audio**).
+7. Click **Download**. Your files will be waiting for you in your computer's `Downloads` folder!
