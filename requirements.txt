@@ -1,4 +1,8 @@
 yt-dlp
 streamlit
-groqgroq
+groq
 python-dotenv
+nodeenv
+curl-cffi
+secretstorage
+keyring
