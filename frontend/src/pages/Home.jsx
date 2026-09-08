@@ -140,6 +140,7 @@ export default function Home() {
           </div>
           <div className="lg:col-span-2">
             <MediaGrid 
+              roadmap={roadmap}
               videos={videos} 
               isLoading={isLoading} 
               selectedTopic={selectedTopic}

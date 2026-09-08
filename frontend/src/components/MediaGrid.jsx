@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function MediaGrid({ videos, isLoading, selectedTopic }) {
+export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap }) {
   if (isLoading && videos.length === 0) {
     return (
       <div className="bg-google-surface/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 h-full">
@@ -17,14 +17,37 @@ export default function MediaGrid({ videos, isLoading, selectedTopic }) {
 
   if (videos.length === 0) return null;
 
-  // Smart filtering logic: matches if the video's topics include the selected topic string (case insensitive)
+  // Smart filtering logic:
+  // 1. Find all sub-topics associated with the selected topic from the roadmap
+  let matchWords = [];
+  if (selectedTopic) {
+    matchWords.push(selectedTopic.toLowerCase());
+    
+    if (roadmap && roadmap.roadmap_overview) {
+      const stepObj = roadmap.roadmap_overview.find(s => 
+        (typeof s === 'string' ? s : s.main_topic) === selectedTopic
+      );
+      if (stepObj && stepObj.sub_topics) {
+        stepObj.sub_topics.forEach(sub => matchWords.push(sub.toLowerCase()));
+      }
+    }
+  }
+
   const filteredVideos = selectedTopic 
-    ? videos.filter(v => 
-        v.topics && v.topics.some(t => 
-          t.toLowerCase().includes(selectedTopic.toLowerCase()) || 
-          selectedTopic.toLowerCase().includes(t.toLowerCase())
-        )
-      )
+    ? videos.filter(v => {
+        // We will check if the video's topics, rationale, or title contains ANY of the matchWords
+        const searchSpace = [
+          ...(v.topics || []),
+          v.title || "",
+          v.rationale || ""
+        ].map(s => s.toLowerCase());
+
+        return matchWords.some(matchWord => 
+          searchSpace.some(targetText => 
+            targetText.includes(matchWord) || matchWord.includes(targetText)
+          )
+        );
+      })
     : videos;
 
   return (
@@ -35,11 +58,11 @@ export default function MediaGrid({ videos, isLoading, selectedTopic }) {
         </h2>
         <div className="flex gap-2">
           {selectedTopic && (
-            <span className="text-xs bg-google-purple/20 text-google-purple border border-google-purple/30 px-3 py-1 rounded-full">
+            <span className="text-xs bg-google-purple/20 text-google-purple border border-google-purple/30 px-3 py-1 rounded-full flex items-center">
               Filter Active
             </span>
           )}
-          <span className="text-xs bg-white/5 px-3 py-1 rounded-full text-gray-400 border border-white/10">
+          <span className="text-xs bg-white/5 px-3 py-1 rounded-full text-gray-400 border border-white/10 flex items-center">
             {filteredVideos.length} Results
           </span>
         </div>
