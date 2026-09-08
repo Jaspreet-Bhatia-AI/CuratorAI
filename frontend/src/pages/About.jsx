@@ -49,8 +49,8 @@ export default function About() {
         <div className="relative aspect-square max-w-md mx-auto w-full">
           <div className="absolute inset-0 bg-gradient-to-tr from-google-purple to-blue-600 rounded-full blur-[100px] opacity-30"></div>
           <div className="relative h-full w-full bg-google-surface border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center">
-            {/* Placeholder for Profile Picture */}
-            <span className="text-6xl font-bold text-white/20">JB</span>
+            {/* Profile Picture */}
+            <img src="/jaspreet-bhatia.jpeg" alt="Jaspreet Bhatia" className="w-full h-full object-cover object-center" />
           </div>
         </div>
       </section>
