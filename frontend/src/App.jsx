@@ -7,10 +7,56 @@ import './index.css';
 
 function App() {
   const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [roadmap, setRoadmap] = useState(null);
+  const [videos, setVideos] = useState([]);
 
-  const handleSearch = (query) => {
-    console.log("Searching for:", query);
+  const handleSearch = async (query) => {
     setHasSearched(true);
+    setIsLoading(true);
+    setRoadmap(null);
+    setVideos([]);
+
+    try {
+      // 1. Call FastAPI backend for the AI Roadmap
+      const res = await fetch("http://localhost:8000/api/generate-roadmap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+      });
+      
+      const data = await res.json();
+      
+      if(data.success && data.data) {
+        setRoadmap(data.data);
+        
+        // 2. Search for the videos one by one
+        const curriculum = data.data.curriculum || [];
+        for(const item of curriculum) {
+          fetch("http://localhost:8000/api/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ search_query: item.search_query })
+          })
+          .then(r => r.json())
+          .then(vData => {
+            if(vData.success) {
+              setVideos(prev => [...prev, { 
+                ...vData.data, 
+                rationale: item.rationale,
+                topics: item.topics_covered 
+              }]);
+            }
+          })
+          .catch(e => console.error("Search failed:", e));
+        }
+      }
+    } catch (err) {
+      console.error("Backend connection failed:", err);
+      alert("Failed to connect to backend. Is FastAPI running on port 8000?");
+    }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -29,7 +75,7 @@ function App() {
         </header>
 
         <main className="space-y-16">
-          <Hero onSearch={handleSearch} hasSearched={hasSearched} />
+          <Hero onSearch={handleSearch} hasSearched={hasSearched} isLoading={isLoading} />
           
           {hasSearched && (
             <motion.div 
@@ -39,10 +85,10 @@ function App() {
               className="grid grid-cols-1 lg:grid-cols-3 gap-8"
             >
               <div className="lg:col-span-1">
-                <Roadmap />
+                <Roadmap roadmap={roadmap} isLoading={isLoading} />
               </div>
               <div className="lg:col-span-2">
-                <MediaGrid />
+                <MediaGrid videos={videos} isLoading={isLoading} />
               </div>
             </motion.div>
           )}
