@@ -26,7 +26,7 @@ export default function About() {
             Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-google-purple to-blue-400">Jaspreet Bhatia</span>
           </h1>
           <p className="text-xl text-gray-400 leading-relaxed">
-            I am a Full-Stack AI Developer and Cloud Engineer. My ultimate goal is to become an AI officer and robotics expert—building intelligent systems and robots like Jarvis from Iron Man.
+            I am a Full-Stack AI Developer and Cloud Engineer. My ultimate goal is to become an AI officer and robotics expert, building intelligent, scalable systems that push the boundaries of automation and artificial intelligence.
           </p>
           <div className="flex gap-4 pt-4">
             <a 
