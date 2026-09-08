@@ -19,7 +19,7 @@ function App() {
 
     try {
       // 1. Call FastAPI backend for the AI Roadmap
-      const res = await fetch("http://localhost:8000/api/generate-roadmap", {
+      const res = await fetch("/api/generate-roadmap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query })
@@ -33,7 +33,7 @@ function App() {
         // 2. Search for the videos one by one
         const curriculum = data.data.curriculum || [];
         for(const item of curriculum) {
-          fetch("http://localhost:8000/api/search", {
+          fetch("/api/search", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ search_query: item.search_query })
