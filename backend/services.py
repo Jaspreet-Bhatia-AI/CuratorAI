@@ -114,3 +114,37 @@ def search_youtube(query: str):
         print(f"Search error for {query}: {e}")
     return None
 
+
+def download_video(url: str, output_dir: str):
+    import uuid
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # We enforce mp4 for best browser compatibility
+    ydl_opts = {
+        "outtmpl": os.path.join(output_dir, f"%(title)s_{uuid.uuid4().hex[:6]}.%(ext)s"),
+        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+        "merge_output_format": "mp4",
+        "quiet": True,
+        "no_warnings": True,
+        "cookiesfrombrowser": ("brave",),
+        "extractor_args": {"youtube": ["player_client=default"]}
+    }
+    
+    if node_path:
+        ydl_opts["js_runtimes"] = {'node': {'binary': node_path}}
+        
+    try:
+        with yt(ydl_opts) as yd:
+            info = yd.extract_info(url, download=True)
+            # Find the actual downloaded file path
+            filename = yd.prepare_filename(info)
+            # Sometimes yt-dlp changes the extension after merging
+            base, _ = os.path.splitext(filename)
+            if os.path.exists(f"{base}.mp4"):
+                return f"{base}.mp4"
+            if os.path.exists(f"{base}.mkv"):
+                return f"{base}.mkv"
+            return filename
+    except Exception as e:
+        print(f"Download failed for {url}: {e}")
+        return None

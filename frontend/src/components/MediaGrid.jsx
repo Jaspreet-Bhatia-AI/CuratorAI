@@ -19,6 +19,37 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
 
   if (videos.length === 0) return null;
 
+  // Deduplicate videos: if multiple steps return the same video, merge them!
+  const uniqueVideosMap = new Map();
+  videos.forEach(v => {
+    if (uniqueVideosMap.has(v.url)) {
+      const existing = uniqueVideosMap.get(v.url);
+      
+      // Merge topics without duplicates
+      const combinedTopics = Array.from(new Set([...(existing.topics || []), ...(v.topics || [])]));
+      
+      // Merge rationales if they are different
+      let combinedRationale = existing.rationale;
+      if (v.rationale && existing.rationale && existing.rationale !== v.rationale) {
+        // If it's getting too long, we might just keep the first one, 
+        // but merging them with a bullet point or pipe is good
+        if (!existing.rationale.includes(v.rationale)) {
+           combinedRationale = `${existing.rationale} • ${v.rationale}`;
+        }
+      }
+
+      uniqueVideosMap.set(v.url, { 
+        ...existing, 
+        topics: combinedTopics, 
+        rationale: combinedRationale 
+      });
+    } else {
+      uniqueVideosMap.set(v.url, { ...v });
+    }
+  });
+  
+  const uniqueVideos = Array.from(uniqueVideosMap.values());
+
   let matchWords = [];
   if (selectedTopic) {
     matchWords.push(selectedTopic.toLowerCase());
@@ -33,8 +64,9 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
     }
   }
 
+  // Filter based on the DEDUPLICATED videos
   const filteredVideos = selectedTopic 
-    ? videos.filter(v => {
+    ? uniqueVideos.filter(v => {
         const searchSpace = [
           ...(v.topics || []),
           v.title || "",
@@ -47,7 +79,7 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
           )
         );
       })
-    : videos;
+    : uniqueVideos;
 
   // Selection Logic
   const allFilteredUrls = filteredVideos.map(v => v.url);
@@ -66,7 +98,7 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
   };
 
   const toggleSelect = (url, e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     setSelectedUrls(prev => 
       prev.includes(url) ? prev.filter(u => u !== url) : [...prev, url]
     );
@@ -74,8 +106,16 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
 
   const handleDownload = () => {
     if (selectedUrls.length === 0) return;
-    alert(`Initiating backend download for ${selectedUrls.length} videos...`);
-    // Here we will wire the websocket connection to the backend later!
+    selectedUrls.forEach((url, index) => {
+      setTimeout(() => {
+        const link = document.createElement("a");
+        link.href = `/api/download?url=${encodeURIComponent(url)}`;
+        link.setAttribute("download", "");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, index * 1000);
+    });
   };
 
   return (
@@ -100,19 +140,29 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
         
         {filteredVideos.length > 0 && (
           <div className="flex items-center gap-4 bg-black/40 p-2 rounded-xl border border-white/5">
-            <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer px-2">
-              <input 
-                type="checkbox" 
-                checked={isAllSelected}
-                onChange={toggleSelectAll}
-                className="w-4 h-4 rounded bg-white/10 border-white/20 text-google-purple focus:ring-google-purple accent-google-purple cursor-pointer"
-              />
-              Select All
-            </label>
+            {/* Custom Select All Checkbox */}
+            <div 
+              onClick={toggleSelectAll} 
+              className="flex items-center gap-3 text-sm text-gray-300 cursor-pointer px-2 hover:text-white transition-colors group"
+            >
+              <div className={`w-5 h-5 rounded flex items-center justify-center transition-all duration-300 ${isAllSelected ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-black/50 border border-white/30 group-hover:border-white/60'}`}>
+                {isAllSelected && (
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className="font-medium">Select All</span>
+            </div>
+
             <button 
               onClick={handleDownload}
               disabled={selectedUrls.length === 0}
-              className="bg-gradient-to-r from-google-purple to-blue-500 hover:from-google-purple/80 hover:to-blue-600/80 text-white font-medium py-2 px-4 rounded-lg transition-all shadow-[0_0_15px_rgba(187,170,255,0.3)] disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-sm flex items-center gap-2"
+              className={`font-medium py-2 px-4 rounded-lg transition-all text-sm flex items-center gap-2 ${
+                selectedUrls.length > 0 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:shadow-[0_0_25px_rgba(34,197,94,0.6)]' 
+                  : 'bg-white/5 text-gray-500 opacity-50 cursor-not-allowed border border-white/10'
+              }`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               Download ({selectedUrls.length})
@@ -143,25 +193,34 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
                 transition={{ duration: 0.3, type: "spring" }}
                 key={video.url}
                 onClick={(e) => toggleSelect(video.url, e)}
-                className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 flex flex-col border ${isSelected ? 'bg-google-purple/10 border-google-purple shadow-[0_0_20px_rgba(187,170,255,0.2)]' : 'bg-white/5 border-white/10 hover:border-google-purple/50'}`}
+                className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 flex flex-col border ${
+                  isSelected 
+                    ? 'bg-green-900/30 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.15)] ring-1 ring-green-500/50' 
+                    : 'bg-white/5 border-white/10 hover:border-white/30'
+                }`}
               >
-                {/* Selection Checkbox (Top Left) */}
-                <div className="absolute top-3 left-3 z-30">
-                  <input 
-                    type="checkbox" 
-                    checked={isSelected}
-                    onChange={(e) => toggleSelect(video.url, e)}
-                    className="w-5 h-5 rounded bg-black/50 border-white/20 text-google-purple focus:ring-google-purple accent-google-purple cursor-pointer shadow-xl"
-                  />
+                {/* Custom Selection Checkbox (Top Left) */}
+                <div className="absolute top-4 left-4 z-30">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
+                    isSelected 
+                      ? 'bg-green-500 scale-110 shadow-[0_0_15px_rgba(34,197,94,0.6)]' 
+                      : 'bg-black/60 border-2 border-white/30 group-hover:border-white/60'
+                  }`}>
+                    {isSelected && (
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
                 </div>
 
                 <div className="relative aspect-video w-full overflow-hidden">
                   <img 
                     src={video.thumbnail || "https://via.placeholder.com/640x360?text=No+Thumbnail"} 
                     alt={video.title}
-                    className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105' : 'group-hover:scale-105'}`}
+                    className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105 opacity-90' : 'group-hover:scale-105 opacity-100'}`}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10"></div>
+                  <div className={`absolute inset-0 transition-colors duration-300 ${isSelected ? 'bg-green-900/40 mix-blend-overlay' : 'bg-gradient-to-t from-black/90 via-black/20 to-transparent'}`}></div>
                   
                   {/* External Link Button */}
                   <a 
@@ -169,7 +228,8 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
                     target="_blank"
                     rel="noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute top-3 right-3 z-30 bg-black/60 hover:bg-google-purple/80 text-white p-2 rounded-full backdrop-blur-md transition-colors"
+                    className="absolute top-3 right-3 z-30 bg-black/60 hover:bg-green-500 text-white p-2 rounded-full backdrop-blur-md transition-colors"
+                    title="Watch on YouTube"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                   </a>
@@ -180,12 +240,16 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
                 </div>
                 
                 <div className="p-4 flex-1 flex flex-col">
-                  <h3 className={`text-sm font-medium line-clamp-2 mb-2 transition-colors ${isSelected ? 'text-white' : 'text-gray-200 group-hover:text-google-purple'}`}>
+                  <h3 className={`text-sm font-medium line-clamp-2 mb-2 transition-colors ${isSelected ? 'text-green-50' : 'text-gray-200 group-hover:text-white'}`}>
                     {video.title}
                   </h3>
                   
                   {video.rationale && (
-                    <div className="mt-auto bg-google-purple/10 border border-google-purple/20 p-2 rounded text-xs text-google-purple/90">
+                    <div className={`mt-auto p-2 rounded text-xs transition-colors ${
+                      isSelected 
+                        ? 'bg-green-500/20 border border-green-500/30 text-green-200' 
+                        : 'bg-white/5 border border-white/10 text-gray-400'
+                    }`}>
                       💡 {video.rationale}
                     </div>
                   )}

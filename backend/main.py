@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import asyncio
-from services import generate_roadmap_json, search_youtube
+import os
+from services import generate_roadmap_json, search_youtube, download_video
 
 app = FastAPI(title="AI YouTube Downloader API")
 
@@ -35,28 +37,30 @@ async def search_video(req: SearchRequest):
         return {"success": True, "data": result}
     raise HTTPException(status_code=404, detail="Video not found")
 
-@app.websocket("/api/ws/download")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
+def remove_file(path: str):
     try:
-        while True:
-            data = await websocket.receive_text()
-            # Expecting JSON like: {"url": "...", "format": "Audio/Video"}
-            import json
-            req = json.loads(data)
-            url = req.get("url")
-            
-            # Simulate streaming download progress for now
-            # Later we integrate the real yt-dlp progress hook
-            for i in range(1, 101, 10):
-                await websocket.send_json({"url": url, "progress": i, "status": "downloading"})
-                await asyncio.sleep(0.5)
-                
-            await websocket.send_json({"url": url, "progress": 100, "status": "completed"})
-    except WebSocketDisconnect:
-        print("Client disconnected")
+        os.remove(path)
     except Exception as e:
-        print(f"WS error: {e}")
+        print(f"Error removing temp file {path}: {e}")
+
+@app.get("/api/download")
+async def download_endpoint(url: str, background_tasks: BackgroundTasks):
+    download_dir = os.path.join(os.getcwd(), "temp_downloads")
+    filepath = download_video(url, download_dir)
+    
+    if not filepath or not os.path.exists(filepath):
+        raise HTTPException(status_code=500, detail="Failed to download video from YouTube")
+    
+    # Send the file to the user's browser, then delete it from the server to save space
+    filename = os.path.basename(filepath)
+    background_tasks.add_task(remove_file, filepath)
+    
+    return FileResponse(
+        path=filepath,
+        filename=filename,
+        media_type="video/mp4",
+        headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+    )
 
 if __name__ == "__main__":
     import uvicorn
