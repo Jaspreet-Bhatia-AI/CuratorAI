@@ -65,6 +65,7 @@ def generate_roadmap(user_query):
                 {"role": "user", "content": user_query}
             ],
             model="openai/gpt-oss-120b",
+            max_tokens=8000,
             response_format={"type": "json_object"}
         )
         return json.loads(response.choices[0].message.content)
