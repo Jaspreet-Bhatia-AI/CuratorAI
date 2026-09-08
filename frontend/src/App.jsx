@@ -10,15 +10,16 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [roadmap, setRoadmap] = useState(null);
   const [videos, setVideos] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState(null);
 
   const handleSearch = async (query) => {
     setHasSearched(true);
     setIsLoading(true);
     setRoadmap(null);
     setVideos([]);
+    setSelectedTopic(null); // Reset selection on new search
 
     try {
-      // 1. Call FastAPI backend for the AI Roadmap
       const res = await fetch("/api/generate-roadmap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -30,7 +31,6 @@ function App() {
       if(data.success && data.data) {
         setRoadmap(data.data);
         
-        // 2. Search for the videos one by one
         const curriculum = data.data.curriculum || [];
         for(const item of curriculum) {
           fetch("/api/search", {
@@ -53,7 +53,7 @@ function App() {
       }
     } catch (err) {
       console.error("Backend connection failed:", err);
-      alert("Failed to connect to backend. Is FastAPI running on port 8000?");
+      alert("Failed to connect to backend. Is FastAPI running?");
     }
     
     setIsLoading(false);
@@ -85,10 +85,19 @@ function App() {
               className="grid grid-cols-1 lg:grid-cols-3 gap-8"
             >
               <div className="lg:col-span-1">
-                <Roadmap roadmap={roadmap} isLoading={isLoading} />
+                <Roadmap 
+                  roadmap={roadmap} 
+                  isLoading={isLoading} 
+                  selectedTopic={selectedTopic}
+                  onSelectTopic={setSelectedTopic}
+                />
               </div>
               <div className="lg:col-span-2">
-                <MediaGrid videos={videos} isLoading={isLoading} />
+                <MediaGrid 
+                  videos={videos} 
+                  isLoading={isLoading} 
+                  selectedTopic={selectedTopic}
+                />
               </div>
             </motion.div>
           )}
