@@ -1,67 +1,87 @@
-# 🎓 AI YouTube Curriculum & Music Downloader
+# CuratorAI (AI YouTube Downloader) 🚀
 
-An intelligent, AI-powered application that takes a simple goal (e.g., "Learn Python from scratch" or "Top 20 Romantic Songs") and automatically generates a structured learning roadmap or playlist. It then hunts down the best, highest-viewed videos on YouTube, presents them in a beautiful UI, and batch-downloads them directly to your computer.
+CuratorAI is a next-generation full-stack application that leverages Large Language Models (LLMs) to automatically generate highly-optimized learning roadmaps and music playlists. It instantly queries YouTube to find the perfect videos for every step, provides a sleek interactive dashboard to filter results, and allows you to download the actual `.mp4` video files directly to your device.
 
-Built with **Python**, **Streamlit**, **yt-dlp**, and the **Groq API**.
-
-## Features
-* **AI Curriculum Generation:** Uses advanced LLMs (via Groq) to break down massive educational goals into step-by-step, non-repetitive learning roadmaps.
-* **Smart Music Curation:** Automatically prioritizes full-length "Mashups", "Jukeboxes", and "Compilations" when searching for music vibes/genres, complete with interactive tracklists.
-* **Batch Downloading:** Select the videos you want and download them all at once as MP4 (Video) or MP3 (Audio).
-* **Auto-Organization:** Downloads are safely grouped into clean folders inside your `Downloads` directory, named exactly after your prompt.
+## ✨ Features
+- **AI-Powered Roadmaps:** Type in any topic (e.g., "Learn Python OOP" or "30 sad songs in hindi"), and the Groq LLM will architect a complete step-by-step curriculum.
+- **Smart Filtering & Deduplication:** Click on any step in the roadmap to instantly filter the video grid. Duplicate videos covering multiple topics are automatically merged.
+- **Beautiful UI/UX:** Built with React, Tailwind CSS, and Framer Motion for a fluid, glassmorphism-inspired "Google Stitch" aesthetic.
+- **Direct Video Downloads:** Select multiple videos and download them straight to your local `Downloads` folder using a robust FastAPI + `yt-dlp` backend pipeline.
+- **Anti-Bot Evasion:** Backend utilizes Node.js injection and optimized `yt-dlp` arguments to bypass YouTube bot detection seamlessly.
 
 ---
 
-##  Getting Started
+## 🛠️ Tech Stack
+- **Frontend:** React, Vite, Tailwind CSS v4, Framer Motion, React Router.
+- **Backend:** Python, FastAPI, Uvicorn, `yt-dlp`.
+- **AI Integration:** Groq API (`openai/gpt-oss-120b`).
+- **Process Management:** PM2.
 
-### 1. Prerequisites
-* **Python 3.8+** installed on your system.
-* **FFmpeg** installed (Required by `yt-dlp` to convert videos to MP3 audio).
-  * *Ubuntu/Linux:* `sudo apt install ffmpeg`
-  * *Mac:* `brew install ffmpeg`
-  * *Windows:* Download via `winget install ffmpeg`
-* A **Groq API Key** (You can get one for free at [console.groq.com](https://console.groq.com)).
+---
 
-### 2. Installation
-Clone the repository and install the required Python packages:
+## ⚙️ Setup & Installation
 
+### Prerequisites
+Make sure you have the following installed on your system:
+- **Python 3.10+**
+- **Node.js & npm** (Required for Vite and `yt-dlp` JS evaluation)
+- **PM2** (Install globally via `npm install -g pm2`)
+
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/Jaspreet-Bhatia-AI/youtube-downloader.git
-cd youtube-downloader
+git clone https://github.com/Jaspreet-Bhatia-AI/CuratorAI.git
+cd CuratorAI
+```
+*(Note: Replace the URL with your actual GitHub repository URL if renamed).*
 
-# (Optional but recommended) Create a virtual environment
+### 2. Backend Setup
+```bash
+cd backend
 python3 -m venv venv
 source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
+pip install fastapi uvicorn yt-dlp groq python-dotenv
 ```
-
-### 3. Setup your API Key
-Create a hidden `.env` file in the root directory to store your Groq API key securely. 
-
-```bash
-touch .env
-```
-Open the `.env` file and add your key like this:
+Create a `.env` file in the `backend/` directory and add your Groq API Key:
 ```env
-GROQ_API_KEY=gsk_your_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 ```
-*(Note: `.env` is included in `.gitignore`, so your key will never be uploaded to GitHub).*
 
-### 4. Run the App
-Launch the Streamlit web interface:
+### 3. Frontend Setup
 ```bash
-streamlit run app.py
+cd ../frontend
+npm install
 ```
 
 ---
 
-## 🛠️ How to Use
-1. Open the local URL provided by Streamlit (usually `http://localhost:8501`).
-2. Type a goal into the search bar (e.g., *"Complete guide to Object Oriented Programming"* or *"Late night drive lofi music"*).
-3. Click **Generate AI Plan**. 
-4. Review the generated Course Index / Tracklists.
-5. Check or uncheck the videos you want to keep.
-6. Select your preferred format (**Video** or **Audio**).
-7. Click **Download**. Your files will be waiting for you in your computer's `Downloads` folder!
+## 🚀 Running the App via PM2 (Localhost / Network)
+
+To run both the frontend and backend continuously in the background, we use PM2. 
+
+### Start the FastAPI Backend
+Because we are using a Python virtual environment, we must explicitly tell PM2 to use the `venv` interpreter to avoid syntax crashes.
+```bash
+cd backend
+pm2 start venv/bin/uvicorn --name "yt-backend" --interpreter venv/bin/python -- main:app --host 0.0.0.0 --port 8000
+```
+
+### Start the React Frontend
+Open a new terminal or navigate back to the frontend directory:
+```bash
+cd ../frontend
+pm2 start npm --name "yt-frontend" -- run dev
+```
+
+### Useful PM2 Commands
+- **Check Status:** `pm2 status`
+- **View Logs:** `pm2 logs` (or `pm2 logs yt-backend` / `pm2 logs yt-frontend`)
+- **Stop App:** `pm2 stop all`
+- **Restart App:** `pm2 restart all`
+
+---
+
+## 🌐 Accessing the App
+Once both processes are running, open your web browser and navigate to:
+**http://localhost:5173**
+
+Because the frontend runs with `--host` (configured in `package.json`), you can also access the application from your mobile phone or another computer on the same Wi-Fi network by replacing `localhost` with your computer's local IP address (e.g., `http://192.168.1.X:5173`).
