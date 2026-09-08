@@ -1,109 +1,35 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import Hero from './components/Hero';
-import Roadmap from './components/Roadmap';
-import MediaGrid from './components/MediaGrid';
-import './index.css';
+import React from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import About from './pages/About';
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
 
 function App() {
-  const [hasSearched, setHasSearched] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [roadmap, setRoadmap] = useState(null);
-  const [videos, setVideos] = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(null);
-
-  const handleSearch = async (query) => {
-    setHasSearched(true);
-    setIsLoading(true);
-    setRoadmap(null);
-    setVideos([]);
-    setSelectedTopic(null); // Reset selection on new search
-
-    try {
-      const res = await fetch("/api/generate-roadmap", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query })
-      });
-      
-      const data = await res.json();
-      
-      if(data.success && data.data) {
-        setRoadmap(data.data);
-        
-        const curriculum = data.data.curriculum || [];
-        for(const item of curriculum) {
-          fetch("/api/search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ search_query: item.search_query })
-          })
-          .then(r => r.json())
-          .then(vData => {
-            if(vData.success) {
-              setVideos(prev => [...prev, { 
-                ...vData.data, 
-                rationale: item.rationale,
-                topics: item.topics_covered 
-              }]);
-            }
-          })
-          .catch(e => console.error("Search failed:", e));
-        }
-      }
-    } catch (err) {
-      console.error("Backend connection failed:", err);
-      alert("Failed to connect to backend. Is FastAPI running?");
-    }
-    
-    setIsLoading(false);
-  };
-
   return (
-    <div className="min-h-screen p-6 md:p-12 font-sans flex flex-col items-center">
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full max-w-6xl space-y-12"
-      >
-        <header className="flex justify-between items-center py-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-google-purple to-blue-500 shadow-[0_0_15px_rgba(139,92,246,0.5)]"></div>
-            <span className="font-semibold text-xl tracking-tight">Curator<span className="text-google-purple">AI</span></span>
-          </div>
-        </header>
-
-        <main className="space-y-16">
-          <Hero onSearch={handleSearch} hasSearched={hasSearched} isLoading={isLoading} />
-          
-          {hasSearched && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
-            >
-              <div className="lg:col-span-1">
-                <Roadmap 
-                  roadmap={roadmap} 
-                  isLoading={isLoading} 
-                  selectedTopic={selectedTopic}
-                  onSelectTopic={setSelectedTopic}
-                />
-              </div>
-              <div className="lg:col-span-2">
-                <MediaGrid 
-                  videos={videos} 
-                  isLoading={isLoading} 
-                  selectedTopic={selectedTopic}
-                />
-              </div>
-            </motion.div>
-          )}
-        </main>
-      </motion.div>
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen bg-google-dark text-gray-200 font-sans flex flex-col selection:bg-google-purple/30 selection:text-white">
+        <Navbar />
+        <div className="flex-1 flex flex-col">
+          <AnimatedRoutes />
+        </div>
+        <Footer />
+      </div>
+    </BrowserRouter>
   );
 }
 
