@@ -11,6 +11,22 @@ client = Groq()
 
 node_path = shutil.which("node")
 
+DOWNLOAD_PROGRESS = {}
+
+def get_progress_hook(task_id):
+    def hook(d):
+        if not task_id: return
+        if d['status'] == 'downloading':
+            p = d.get('_percent_str', '0%').strip()
+            # Remove ANSI escape codes
+            p = re.sub(r'\x1b\[[0-9;]*m', '', p)
+            DOWNLOAD_PROGRESS[task_id] = {"status": "downloading", "percent": p}
+        elif d['status'] == 'finished':
+            DOWNLOAD_PROGRESS[task_id] = {"status": "processing", "percent": "100%"}
+    return hook
+
+
+
 def generate_roadmap_json(user_query: str):
     system_prompt = """You are an elite AI curriculum architect and YouTube curation expert.
     The user will give you a request (e.g., 'Learn Python OOP', '30 sad songs in hindi').
@@ -63,18 +79,20 @@ def generate_roadmap_json(user_query: str):
 def search_youtube(query: str):
     ydl_opts_fast = {
         "quiet": True,
-        "no_warnings": True,
+            "no_warnings": True,
+            "progress_hooks": [get_progress_hook(task_id)] if task_id else [],
         "extract_flat": True,
         "noplaylist": True,
         "cookiesfrombrowser": ("brave",),
-        "extractor_args": {"youtube": ["player_client=default"]}
+        "extractor_args": {"youtube": ["player_client=ios,web"]}
     }
     ydl_opts_full = {
         "quiet": True,
-        "no_warnings": True,
+            "no_warnings": True,
+            "progress_hooks": [get_progress_hook(task_id)] if task_id else [],
         "noplaylist": True,
         "cookiesfrombrowser": ("brave",),
-        "extractor_args": {"youtube": ["player_client=default"]}
+        "extractor_args": {"youtube": ["player_client=ios,web"]}
     }
     
     if node_path:
@@ -125,9 +143,8 @@ def download_video(url: str, output_dir: str):
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
         "merge_output_format": "mp4",
         "quiet": True,
-        "no_warnings": True,
-        "cookiesfrombrowser": ("brave",),
-        "extractor_args": {"youtube": ["player_client=default"]}
+            "no_warnings": True,
+            "progress_hooks": [get_progress_hook(task_id)] if task_id else []
     }
     
     if node_path:

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import asyncio
 import os
-from services import generate_roadmap_json, search_youtube, download_video
+from services import generate_roadmap_json, search_youtube, download_video, DOWNLOAD_PROGRESS
 
 app = FastAPI(title="AI YouTube Downloader API")
 
@@ -43,23 +43,29 @@ def remove_file(path: str):
     except Exception as e:
         print(f"Error removing temp file {path}: {e}")
 
+
+@app.get("/api/progress")
+async def get_progress(task_id: str):
+    return DOWNLOAD_PROGRESS.get(task_id, {"status": "waiting", "percent": "0%"})
+
 @app.get("/api/download")
-async def download_endpoint(url: str, background_tasks: BackgroundTasks):
+async def download_endpoint(url: str, background_tasks: BackgroundTasks, format: str = "video", task_id: str = None):
     download_dir = os.path.join(os.getcwd(), "temp_downloads")
-    filepath = download_video(url, download_dir)
+    filepath = download_video(url, download_dir, format, task_id)
     
     if not filepath or not os.path.exists(filepath):
         raise HTTPException(status_code=500, detail="Failed to download video from YouTube")
     
-    # Send the file to the user's browser, then delete it from the server to save space
     filename = os.path.basename(filepath)
     background_tasks.add_task(remove_file, filepath)
+    
+    media_type = "audio/mpeg" if format == "audio" else "video/mp4"
     
     return FileResponse(
         path=filepath,
         filename=filename,
-        media_type="video/mp4",
-        headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        media_type=media_type,
+        # Let FastAPI handle headers for unicode filenames
     )
 
 if __name__ == "__main__":

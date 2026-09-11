@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap }) {
   const [selectedUrls, setSelectedUrls] = useState([]);
+  const [downloadFormat, setDownloadFormat] = useState("video");
+  const [progresses, setProgresses] = useState({});
 
   if (isLoading && videos.length === 0) {
     return (
@@ -106,10 +108,42 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
 
   const handleDownload = () => {
     if (selectedUrls.length === 0) return;
+    
     selectedUrls.forEach((url, index) => {
       setTimeout(() => {
+        const taskId = Math.random().toString(36).substring(7);
+        
+        setProgresses(prev => ({ 
+          ...prev, 
+          [url]: { percent: '0%', status: 'fetching', label: 'Connecting...' } 
+        }));
+        
+        const interval = setInterval(async () => {
+          try {
+            const res = await fetch(`/api/progress?task_id=${taskId}`);
+            const data = await res.json();
+            
+            if (data.status !== 'waiting') {
+              setProgresses(prev => ({
+                ...prev,
+                [url]: { 
+                  percent: data.percent, 
+                  status: data.status,
+                  label: data.status === 'processing' ? 'Finalizing (Server to Browser)...' : `Downloading ${data.percent}`
+                }
+              }));
+              
+              if (data.status === 'processing') {
+                clearInterval(interval);
+              }
+            }
+          } catch (e) {
+            // ignore network errors during poll
+          }
+        }, 1000);
+
         const link = document.createElement("a");
-        link.href = `/api/download?url=${encodeURIComponent(url)}`;
+        link.href = `/api/download?url=${encodeURIComponent(url)}&format=${downloadFormat}&task_id=${taskId}`;
         link.setAttribute("download", "");
         document.body.appendChild(link);
         link.click();
@@ -155,6 +189,15 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
               <span className="font-medium">Select All</span>
             </div>
 
+            
+            <select
+              value={downloadFormat}
+              onChange={(e) => setDownloadFormat(e.target.value)}
+              className="bg-black/50 border border-white/20 text-white text-sm rounded-lg py-2 px-3 focus:outline-none focus:border-green-500 transition-colors cursor-pointer"
+            >
+              <option value="video">Video (MP4)</option>
+              <option value="audio">Audio (MP3)</option>
+            </select>
             <button 
               onClick={handleDownload}
               disabled={selectedUrls.length === 0}
@@ -167,6 +210,7 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               Download ({selectedUrls.length})
             </button>
+    
           </div>
         )}
       </div>
@@ -244,7 +288,25 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
                     {video.title}
                   </h3>
                   
-                  {video.rationale && (
+                  
+                  {/* Progress Bar UI */}
+                  {progresses[video.url] && (
+                    <div className="mt-auto mb-2">
+                      <div className="flex justify-between text-xs mb-1 text-green-300 font-medium">
+                        <span>{progresses[video.url].label}</span>
+                      </div>
+                      <div className="w-full bg-black/40 rounded-full h-1.5 border border-white/10 overflow-hidden">
+                        <motion.div 
+                          className="bg-green-500 h-1.5 shadow-[0_0_10px_rgba(34,197,94,0.8)]" 
+                          initial={{ width: '0%' }}
+                          animate={{ width: progresses[video.url].percent }}
+                          transition={{ ease: "linear", duration: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {video.rationale && !progresses[video.url] && (
                     <div className={`mt-auto p-2 rounded text-xs transition-colors ${
                       isSelected 
                         ? 'bg-green-500/20 border border-green-500/30 text-green-200' 
