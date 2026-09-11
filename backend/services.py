@@ -18,14 +18,11 @@ def get_progress_hook(task_id):
         if not task_id: return
         if d['status'] == 'downloading':
             p = d.get('_percent_str', '0%').strip()
-            # Remove ANSI escape codes
             p = re.sub(r'\x1b\[[0-9;]*m', '', p)
             DOWNLOAD_PROGRESS[task_id] = {"status": "downloading", "percent": p}
         elif d['status'] == 'finished':
             DOWNLOAD_PROGRESS[task_id] = {"status": "processing", "percent": "100%"}
     return hook
-
-
 
 def generate_roadmap_json(user_query: str):
     system_prompt = """You are an elite AI curriculum architect and YouTube curation expert.
@@ -79,8 +76,7 @@ def generate_roadmap_json(user_query: str):
 def search_youtube(query: str):
     ydl_opts_fast = {
         "quiet": True,
-            "no_warnings": True,
-            "progress_hooks": [get_progress_hook(task_id)] if task_id else [],
+        "no_warnings": True,
         "extract_flat": True,
         "noplaylist": True,
         "cookiesfrombrowser": ("brave",),
@@ -88,8 +84,7 @@ def search_youtube(query: str):
     }
     ydl_opts_full = {
         "quiet": True,
-            "no_warnings": True,
-            "progress_hooks": [get_progress_hook(task_id)] if task_id else [],
+        "no_warnings": True,
         "noplaylist": True,
         "cookiesfrombrowser": ("brave",),
         "extractor_args": {"youtube": ["player_client=ios,web"]}
@@ -111,7 +106,6 @@ def search_youtube(query: str):
                 best = valid_entries[0]
                 url = best.get("url")
                 
-                # Fetch full description
                 full_desc = ""
                 try:
                     with yt(ydl_opts_full) as yd_full:
@@ -132,20 +126,34 @@ def search_youtube(query: str):
         print(f"Search error for {query}: {e}")
     return None
 
-
-def download_video(url: str, output_dir: str):
+def download_video(url: str, output_dir: str, format_type: str = "video", task_id: str = None):
     import uuid
     os.makedirs(output_dir, exist_ok=True)
     
-    # We enforce mp4 for best browser compatibility
-    ydl_opts = {
-        "outtmpl": os.path.join(output_dir, f"%(title)s_{uuid.uuid4().hex[:6]}.%(ext)s"),
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-        "merge_output_format": "mp4",
-        "quiet": True,
+    outtmpl = os.path.join(output_dir, f"%(title)s_{uuid.uuid4().hex[:6]}.%(ext)s")
+    
+    if format_type == "audio":
+        ydl_opts = {
+            "outtmpl": outtmpl,
+            "format": "bestaudio/best",
+            "postprocessors": [{
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }],
+            "quiet": True,
             "no_warnings": True,
             "progress_hooks": [get_progress_hook(task_id)] if task_id else []
-    }
+        }
+    else:
+        ydl_opts = {
+            "outtmpl": outtmpl,
+            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+            "merge_output_format": "mp4",
+            "quiet": True,
+            "no_warnings": True,
+            "progress_hooks": [get_progress_hook(task_id)] if task_id else []
+        }
     
     if node_path:
         ydl_opts["js_runtimes"] = {'node': {'binary': node_path}}
@@ -153,10 +161,12 @@ def download_video(url: str, output_dir: str):
     try:
         with yt(ydl_opts) as yd:
             info = yd.extract_info(url, download=True)
-            # Find the actual downloaded file path
             filename = yd.prepare_filename(info)
-            # Sometimes yt-dlp changes the extension after merging
             base, _ = os.path.splitext(filename)
+            
+            if format_type == "audio" and os.path.exists(f"{base}.mp3"):
+                return f"{base}.mp3"
+                
             if os.path.exists(f"{base}.mp4"):
                 return f"{base}.mp4"
             if os.path.exists(f"{base}.mkv"):
