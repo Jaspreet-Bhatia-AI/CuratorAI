@@ -83,8 +83,8 @@ def generate_roadmap_json(user_query: str):
 Your task is to take the user's request and structure it into a logical JSON roadmap or playlist.
 
 IMPORTANT CURATION RULES:
-- FOR MUSIC: NEVER invent songs. If provided with OFFICIAL MUSIC DATABASE RESULTS, you MUST build your playlist using strictly those exact track names. DO NOT invent any songs.
-- FOR MUSIC: To ensure the correct official video is fetched, your search_query MUST be perfectly formatted as: "{Exact Track Name} {Artist Name} Official Audio" (e.g., "Dildarian Amrinder Gill Official Audio").
+- NEVER invent content. If provided with REAL YOUTUBE SEARCH RESULTS in your context, you MUST use those exact titles to build your roadmap/playlist. This is crucial for surfacing brand new releases.
+- FOR MUSIC: To ensure the correct official video is fetched, your search_query MUST be perfectly formatted as: "{Exact Track Name} {Artist Name} Official Audio" (e.g., "Dua Amrinder Gill Official Audio").
 - Provide a "rationale" explaining exactly WHY you chose this item/song.
 
 Output ONLY raw JSON with this exact schema:
@@ -108,44 +108,24 @@ Output ONLY raw JSON with this exact schema:
     
     try:
         realtime_context = ""
-        music_keywords = ["song", "songs", "music", "audio", "playlist", "singer", "artist", "beats", "lofi"]
-        is_music_query = any(kw in user_query.lower() for kw in music_keywords)
-        
-        if not is_music_query:
-            try:
-                results = DDGS().text(user_query, max_results=4)
-                if results:
-                    realtime_context = "REAL-TIME INTERNET SEARCH RESULTS TO AUGMENT YOUR KNOWLEDGE:\n"
-                    for r in results:
-                        realtime_context += f"- {r.get('title')}: {r.get('body')}\n"
-            except Exception as e:
-                pass
-        else:
-            try:
-                import urllib.request, urllib.parse, json
-                url = f"https://itunes.apple.com/search?term={urllib.parse.quote(user_query)}&entity=song&limit=50"
-                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req, timeout=5) as response:
-                    data = json.loads(response.read())
-                    if 'results' in data and len(data['results']) > 0:
-                        realtime_context = "OFFICIAL MUSIC DATABASE RESULTS (USE THESE EXACT TRACK NAMES FOR YOUR PLAYLIST):\n"
-                        
-                        # Sort by releaseDate descending to guarantee newest songs are prioritized
-                        sorted_tracks = sorted(
-                            data['results'], 
-                            key=lambda x: x.get('releaseDate', '1970-01-01'), 
-                            reverse=True
-                        )
-                        
-                        # Take the top 15 newest
-                        for i, track in enumerate(sorted_tracks[:15]):
-                            t_name = track.get('trackName', '')
-                            a_name = track.get('artistName', '')
-                            r_date = track.get('releaseDate', '')[:4]
-                            realtime_context += f"- {t_name} by {a_name} (Released: {r_date})\n"
-            except Exception as e:
-                pass
-                
+        try:
+            # UNIVERSAL YOUTUBE RAG
+            # Because DuckDuckGo is rate-limited and iTunes misses brand new low-view tracks,
+            # we rely on YouTube's raw search to feed the LLM with the latest real-world content.
+            import yt_dlp
+            ydl_opts = {"quiet": True, "extract_flat": True, "noplaylist": True}
+            with yt_dlp.YoutubeDL(ydl_opts) as yd:
+                # Ask YouTube for 10 results based on the exact user query
+                info = yd.extract_info(f"ytsearch10:{user_query}", download=False)
+                if 'entries' in info and len(info['entries']) > 0:
+                    realtime_context = "REAL YOUTUBE SEARCH RESULTS (USE THESE TO DISCOVER BRAND NEW OR SPECIFIC CONTENT):\n"
+                    for e in info['entries']:
+                        if e.get('title'):
+                            realtime_context += f"- {e.get('title')} (Channel: {e.get('uploader', 'Unknown')})\n"
+        except Exception as e:
+            print(f"Universal RAG failed: {e}")
+            pass
+            
         # Combine user query with real-time context
         augmented_query = user_query
         if realtime_context:
