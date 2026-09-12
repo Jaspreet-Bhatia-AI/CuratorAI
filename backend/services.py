@@ -89,8 +89,8 @@ The user will give you a request (e.g., 'Learn Python OOP' or 'latest punjabi so
 3. Generate the actual YouTube search queries in the "curriculum" array.
 
 IMPORTANT CURATION RULES:
-- FOR MUSIC: NEVER invent songs. If you are provided with REAL YOUTUBE SEARCH RESULTS in the context, YOU MUST construct your playlist strictly using ONLY those exact videos. Do not invent any songs that are not in the context list.
-- FOR MUSIC: Your search_query should perfectly match the exact title from the context so that it fetches the correct video.
+- FOR MUSIC: NEVER invent songs. If provided with OFFICIAL MUSIC DATABASE RESULTS, you MUST build your playlist using strictly those exact track names.
+- FOR MUSIC: To ensure the correct official video is fetched, your search_query MUST be perfectly formatted as: "{Exact Track Name} {Artist Name} Official Audio" (e.g., "Dildarian Amrinder Gill Official Audio").
 - Provide a "rationale" explaining exactly WHY you chose this item/song.
 
 Output ONLY raw JSON with this exact schema:
