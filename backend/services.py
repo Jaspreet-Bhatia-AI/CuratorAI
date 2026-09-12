@@ -25,7 +25,60 @@ def get_progress_hook(task_id):
             DOWNLOAD_PROGRESS[task_id] = {"status": "processing", "percent": "100%"}
     return hook
 
+def extract_url_to_roadmap(url: str):
+    ydl_opts_fast = {
+        "quiet": True,
+        "no_warnings": True,
+        "extract_flat": "in_playlist",
+        "extractor_args": {"youtube": ["player_client=ios,web"]}
+    }
+    if node_path:
+        ydl_opts_fast["js_runtimes"] = {'node': {'binary': node_path}}
+        
+    with yt(ydl_opts_fast) as yd:
+        info = yd.extract_info(url, download=False)
+        
+        curriculum = []
+        is_playlist = 'entries' in info and info.get('entries') is not None
+        
+        if is_playlist:
+            title = info.get("title", "Curated Playlist")
+            entries = list(info['entries'])
+            for idx, entry in enumerate(entries):
+                vid_url = entry.get("url")
+                if not vid_url and entry.get("id"):
+                    vid_url = f"https://www.youtube.com/watch?v={entry.get('id')}"
+                if vid_url:
+                    curriculum.append({
+                        "search_query": vid_url,
+                        "topics_covered": [entry.get("title", f"Video {idx+1}")],
+                        "rationale": "Fetched from playlist URL."
+                    })
+        else:
+            title = info.get("title", "Curated Video")
+            vid_url = info.get("webpage_url", url)
+            curriculum.append({
+                "search_query": vid_url,
+                "topics_covered": [title],
+                "rationale": "Fetched from direct URL."
+            })
+            
+        return {
+            "type": "music" if "music" in title.lower() else "education",
+            "title": title,
+            "roadmap_overview": [
+                {
+                    "main_topic": "Extracted Media",
+                    "sub_topics": [c["topics_covered"][0] for c in curriculum]
+                }
+            ],
+            "curriculum": curriculum
+        }
+
 def generate_roadmap_json(user_query: str):
+    if user_query.startswith("http://") or user_query.startswith("https://"):
+        return extract_url_to_roadmap(user_query)
+
     system_prompt = """You are an elite AI Curator specializing in both Educational Roadmaps AND Music Playlists.
     The user will give you a request (e.g., 'Learn Python OOP' or '30 sad songs in hindi').
     
@@ -113,22 +166,25 @@ def search_youtube(query: str, search_type: str = "education"):
         
     try:
         with yt(ydl_opts_fast) as yd:
-            info = yd.extract_info(f"ytsearch5:{query}", download=False)
-            if 'entries' in info and len(info['entries']) > 0:
-                entries = list(info['entries'])
-                
-                valid_entries = [e for e in entries if e.get('view_count') is not None]
-                if not valid_entries:
-                    valid_entries = entries
-                    
-                # If it's music, trust YouTube's exact relevance (first result).
-                # If education, sort by views to filter out spam.
-                if search_type == "music":
-                    best = valid_entries[0]
+            if query.startswith("http://") or query.startswith("https://"):
+                info = yd.extract_info(query, download=False)
+                best = info
+                url = info.get("webpage_url", query)
+            else:
+                info = yd.extract_info(f"ytsearch5:{query}", download=False)
+                if 'entries' in info and len(info['entries']) > 0:
+                    entries = list(info['entries'])
+                    valid_entries = [e for e in entries if e.get('view_count') is not None]
+                    if not valid_entries:
+                        valid_entries = entries
+                    if search_type == "music":
+                        best = valid_entries[0]
+                    else:
+                        valid_entries = sorted(valid_entries, key=lambda x: x.get('view_count', 0), reverse=True)
+                        best = valid_entries[0]
+                    url = best.get("url")
                 else:
-                    valid_entries = sorted(valid_entries, key=lambda x: x.get('view_count', 0), reverse=True)
-                    best = valid_entries[0]
-                url = best.get("url")
+                    raise Exception("No results found.")
                 
                 full_desc = ""
                 try:
