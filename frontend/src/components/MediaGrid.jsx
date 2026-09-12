@@ -93,8 +93,16 @@ const VideoCard3D = ({ video, isSelected, onToggleSelect, progress }) => {
             {video.title}
           </h3>
           
-          <div className="text-xs text-gray-400 mb-4 flex items-center space-x-2">
-            <span>{video.views ? new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.views) : '---'} views</span>
+          <div className="text-xs text-gray-400 mb-4 flex items-center space-x-2 flex-wrap">
+            <span className="whitespace-nowrap">{video.views ? new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.views) : '---'} views</span>
+            
+            {video.upload_date && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-gray-600"></span>
+                <span className="whitespace-nowrap">{video.upload_date}</span>
+              </>
+            )}
+
             {video.topics && video.topics.length > 0 && (
               <>
                 <span className="w-1 h-1 rounded-full bg-gray-600"></span>

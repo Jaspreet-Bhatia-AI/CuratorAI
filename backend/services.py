@@ -194,13 +194,23 @@ def search_youtube(query: str, search_type: str = "education"):
                 except:
                     full_desc = best.get("description", "")
                     
+                raw_date = best.get("upload_date")
+                formatted_date = None
+                if raw_date and len(raw_date) == 8:
+                    try:
+                        import datetime
+                        formatted_date = datetime.datetime.strptime(raw_date, "%Y%m%d").strftime("%b %d, %Y")
+                    except:
+                        formatted_date = raw_date
+                
                 return {
                     "title": best.get("title", "Unknown"),
                     "url": url,
                     "thumbnail": best.get("thumbnails", [{}])[-1].get("url") if best.get("thumbnails") else None,
                     "views": best.get("view_count"),
                     "duration": best.get("duration"),
-                    "description": full_desc
+                    "description": full_desc,
+                    "upload_date": formatted_date
                 }
     except Exception as e:
         print(f"Search error for {query}: {e}")
