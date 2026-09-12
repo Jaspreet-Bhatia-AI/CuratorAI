@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import About from './pages/About';
+import { AppProvider } from './context/AppContext';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -21,7 +22,8 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <AppProvider>
+      <BrowserRouter>
       <div className="min-h-screen bg-google-dark text-gray-200 font-sans flex flex-col selection:bg-google-purple/30 selection:text-white">
         <Navbar />
         <div className="flex-1 flex flex-col">
@@ -30,6 +32,7 @@ function App() {
         <Footer />
       </div>
     </BrowserRouter>
+    </AppProvider>
   );
 }
 

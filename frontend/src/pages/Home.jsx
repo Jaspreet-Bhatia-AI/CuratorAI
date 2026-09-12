@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AppContext } from '../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hero from '../components/Hero';
 import Roadmap from '../components/Roadmap';
 import MediaGrid from '../components/MediaGrid';
 
 export default function Home() {
-  const [hasSearched, setHasSearched] = useState(false);
+  const { 
+    hasSearched, setHasSearched, 
+    roadmap, setRoadmap, 
+    videos, setVideos, 
+    selectedTopic, setSelectedTopic 
+  } = useContext(AppContext);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [loadingStatus, setLoadingStatus] = useState('');
-  
-  const [roadmap, setRoadmap] = useState(null);
-  const [videos, setVideos] = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(null);
 
   const handleSearch = async (query) => {
     setHasSearched(true);
