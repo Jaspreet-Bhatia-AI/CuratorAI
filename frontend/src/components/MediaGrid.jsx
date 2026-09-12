@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap }) {
   const [selectedUrls, setSelectedUrls] = useState([]);
-  const [downloadFormat, setDownloadFormat] = useState("video");
+  const [downloadFormat, setDownloadFormat] = useState("video_high");
   const [progresses, setProgresses] = useState({});
 
   if (isLoading && videos.length === 0) {
@@ -195,7 +195,8 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
               onChange={(e) => setDownloadFormat(e.target.value)}
               className="bg-black/50 border border-white/20 text-white text-sm rounded-lg py-2 px-3 focus:outline-none focus:border-green-500 transition-colors cursor-pointer"
             >
-              <option value="video">Video (MP4)</option>
+              <option value="video_high">Video (1080p+ Slower)</option>
+              <option value="video_fast">Video (720p Lightning Fast)</option>
               <option value="audio">Audio (MP3)</option>
             </select>
             <button 

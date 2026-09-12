@@ -126,7 +126,7 @@ def search_youtube(query: str):
         print(f"Search error for {query}: {e}")
     return None
 
-def download_video(url: str, output_dir: str, format_type: str = "video", task_id: str = None):
+def download_video(url: str, output_dir: str, format_type: str = "video_high", task_id: str = None):
     import uuid
     os.makedirs(output_dir, exist_ok=True)
     
@@ -145,7 +145,16 @@ def download_video(url: str, output_dir: str, format_type: str = "video", task_i
             "no_warnings": True,
             "progress_hooks": [get_progress_hook(task_id)] if task_id else []
         }
+    elif format_type == "video_fast":
+        ydl_opts = {
+            "outtmpl": outtmpl,
+            "format": "best[ext=mp4]/best",
+            "quiet": True,
+            "no_warnings": True,
+            "progress_hooks": [get_progress_hook(task_id)] if task_id else []
+        }
     else:
+        # video_high
         ydl_opts = {
             "outtmpl": outtmpl,
             "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",

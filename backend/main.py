@@ -49,7 +49,7 @@ async def get_progress(task_id: str):
     return DOWNLOAD_PROGRESS.get(task_id, {"status": "waiting", "percent": "0%"})
 
 @app.get("/api/download")
-async def download_endpoint(url: str, background_tasks: BackgroundTasks, format: str = "video", task_id: str = None):
+async def download_endpoint(url: str, background_tasks: BackgroundTasks, format: str = "video_high", task_id: str = None):
     download_dir = os.path.join(os.getcwd(), "temp_downloads")
     filepath = download_video(url, download_dir, format, task_id)
     
