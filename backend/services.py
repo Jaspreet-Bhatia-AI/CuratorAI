@@ -187,14 +187,15 @@ def search_youtube(query: str, search_type: str = "education"):
                     raise Exception("No results found.")
                 
                 full_desc = ""
+                raw_date = best.get("upload_date")
                 try:
                     with yt(ydl_opts_full) as yd_full:
                         full_info = yd_full.extract_info(url, download=False)
                         full_desc = full_info.get("description", "")
+                        if full_info.get("upload_date"):
+                            raw_date = full_info.get("upload_date")
                 except:
                     full_desc = best.get("description", "")
-                    
-                raw_date = best.get("upload_date")
                 formatted_date = None
                 if raw_date and len(raw_date) == 8:
                     try:
