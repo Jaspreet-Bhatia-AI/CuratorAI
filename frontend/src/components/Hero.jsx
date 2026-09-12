@@ -15,8 +15,8 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
       className={`flex flex-col items-center justify-center ${hasSearched ? 'py-8' : 'py-32'}`}
       transition={{ duration: 0.8, ease: "easeInOut" }}
     >
-      <motion.div layout className="text-center space-y-6 mb-8 max-w-2xl">
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+      <motion.div layout className="text-center space-y-6 mb-8 max-w-5xl w-full px-4">
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight w-full md:whitespace-nowrap">
           Curate your <span className="text-transparent bg-clip-text bg-gradient-to-r from-google-purple to-blue-400 drop-shadow-[0_0_15px_rgba(187,170,255,0.4)]">roadmaps & playlists</span>
         </h1>
         <p className="text-gray-400 text-lg md:text-xl">
