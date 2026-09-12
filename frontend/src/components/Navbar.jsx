@@ -15,7 +15,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-google-purple to-blue-500 shadow-[0_0_15px_rgba(139,92,246,0.5)] group-hover:scale-110 transition-transform"></div>
-          <span className="font-semibold text-xl tracking-tight text-white">Curator<span className="text-google-purple">AI</span></span>
+          <span className="font-semibold text-xl tracking-tight text-white flex items-center">Curator <span className="text-sm font-normal text-gray-400 ml-3 border-l border-white/20 pl-3">by <span className="font-bold text-google-purple tracking-wide">JB AI</span></span></span>
         </Link>
         
         <div className="flex gap-6">
