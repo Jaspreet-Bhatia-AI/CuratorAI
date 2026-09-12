@@ -17,10 +17,10 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
     >
       <motion.div layout className="text-center space-y-6 mb-8 max-w-2xl">
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-          Design your <span className="text-transparent bg-clip-text bg-gradient-to-r from-google-purple to-blue-400 drop-shadow-[0_0_15px_rgba(187,170,255,0.4)]">learning path</span>
+          Curate your <span className="text-transparent bg-clip-text bg-gradient-to-r from-google-purple to-blue-400 drop-shadow-[0_0_15px_rgba(187,170,255,0.4)]">roadmaps & playlists</span>
         </h1>
         <p className="text-gray-400 text-lg md:text-xl">
-          Enter a topic and let our AI curate the perfect YouTube roadmap for you.
+          Enter a topic, artist, or vibe, and let our AI instantly generate the perfect YouTube curriculum or music mix for you.
         </p>
       </motion.div>
 
@@ -36,7 +36,7 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={isLoading}
-            placeholder={isLoading ? "Architecting your curriculum..." : "What do you want to learn today?"}
+            placeholder={isLoading ? "Curating your media..." : "What do you want to learn or listen to today?"}
             className="w-full bg-transparent border-none outline-none text-white px-6 py-4 placeholder-gray-500 text-lg disabled:opacity-50 transition-opacity"
           />
           <button 
