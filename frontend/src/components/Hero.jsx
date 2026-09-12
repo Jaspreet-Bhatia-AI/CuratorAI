@@ -9,6 +9,20 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
     if(query.trim() && !isLoading) onSearch(query);
   };
 
+  const handleSuggestion = (type) => {
+    if (type === 'link') {
+      setQuery('https://www.youtube.com/watch?v=');
+    } else if (type === 'study') {
+      const q = 'Complete Python Developer Roadmap';
+      setQuery(q);
+      if (!isLoading) onSearch(q);
+    } else if (type === 'music') {
+      const q = 'Top Chill Lofi Beats Mix';
+      setQuery(q);
+      if (!isLoading) onSearch(q);
+    }
+  };
+
   return (
     <motion.section 
       layout
@@ -32,6 +46,15 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
       >
         <div className="absolute -inset-1 bg-gradient-to-r from-google-purple to-blue-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
         <div className="relative w-full flex items-center bg-google-surface/60 border border-white/10 backdrop-blur-xl p-2 rounded-[2rem]">
+          <a 
+            href="https://youtube.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            title="Open YouTube"
+            className="mr-2 text-gray-500 hover:text-red-500 transition-colors p-2"
+          >
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          </a>
           <input 
             type="text"
             value={query}
@@ -52,8 +75,28 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
             )}
           </button>
         </div>
-        <div className="mt-4 text-sm text-gray-500 font-medium tracking-wide">
-          Try: <span className="text-gray-400">"Complete React.js Roadmap"</span> or <span className="text-gray-400">"Late night coding lofi beats"</span>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <button 
+            type="button"
+            onClick={() => handleSuggestion('study')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-google-purple/50 transition-all text-sm text-gray-300"
+          >
+            <span>📚</span> Study Roadmap
+          </button>
+          <button 
+            type="button"
+            onClick={() => handleSuggestion('music')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/50 transition-all text-sm text-gray-300"
+          >
+            <span>🎵</span> Music Mix
+          </button>
+          <button 
+            type="button"
+            onClick={() => handleSuggestion('link')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-green-500/50 transition-all text-sm text-gray-300"
+          >
+            <span>🔗</span> Paste Direct Link
+          </button>
         </div>
 
         {/* Dynamic Percentage Loading Bar */}
