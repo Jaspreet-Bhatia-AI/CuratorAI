@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import toast from 'react-hot-toast';
 import { AppContext } from '../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hero from '../components/Hero';
@@ -93,6 +94,7 @@ export default function Home() {
         
         setProgress(100);
         setLoadingStatus("Curation Complete!");
+        toast.success("Roadmap & Videos generated successfully!");
         
         // Brief delay so the user can see 100% before it hides
         setTimeout(() => {
@@ -106,7 +108,7 @@ export default function Home() {
     } catch (err) {
       clearInterval(aiInterval);
       console.error("Backend connection failed:", err);
-      alert("Failed to connect to backend. Is FastAPI running?");
+      toast.error("Failed to connect to backend. Is FastAPI running?");
       setIsLoading(false);
     }
   };
