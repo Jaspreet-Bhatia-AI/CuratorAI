@@ -5,6 +5,7 @@ import re
 import shutil
 from groq import Groq
 from dotenv import load_dotenv
+from ddgs import DDGS
 
 load_dotenv()
 client = Groq()
@@ -59,10 +60,27 @@ def generate_roadmap_json(user_query: str):
     }"""
     
     try:
+        # Step 1: Perform a real-time web search to augment Groq's knowledge
+        realtime_context = ""
+        try:
+            results = DDGS().text(user_query, max_results=4)
+            if results:
+                realtime_context = "REAL-TIME INTERNET SEARCH RESULTS TO AUGMENT YOUR KNOWLEDGE:\n"
+                for r in results:
+                    realtime_context += f"- {r.get('title')}: {r.get('body')}\n"
+        except Exception as e:
+            print(f"Web search failed: {e}")
+            pass
+            
+        # Combine user query with real-time context
+        augmented_query = user_query
+        if realtime_context:
+            augmented_query = f"User Request: {user_query}\n\n{realtime_context}\n\nBased on the user request and the real-time internet context above, generate the JSON output."
+
         response = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_query}
+                {"role": "user", "content": augmented_query}
             ],
             model="openai/gpt-oss-120b",
             max_tokens=8000,
