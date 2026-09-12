@@ -1,5 +1,138 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+
+
+const VideoCard3D = ({ video, isSelected, onToggleSelect, progress }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
+  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 });
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["15deg", "-15deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-15deg", "15deg"]);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ duration: 0.3, type: "spring" }}
+      style={{ perspective: 1200 }}
+      className="h-full"
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onClick={(e) => onToggleSelect(video.url, e)}
+        className={`group relative rounded-xl h-full overflow-hidden cursor-pointer transition-colors duration-300 flex flex-col border ${
+          isSelected 
+            ? 'bg-green-900/30 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.15)] ring-1 ring-green-500/50' 
+            : 'bg-white/5 border-white/10 hover:border-white/30'
+        }`}
+      >
+        <div className="absolute top-4 left-4 z-30" style={{ transform: "translateZ(50px)" }}>
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
+            isSelected 
+              ? 'bg-green-500 scale-110 shadow-[0_0_15px_rgba(34,197,94,0.6)]' 
+              : 'bg-black/60 border-2 border-white/30 group-hover:border-white/60'
+          }`}>
+            {isSelected && (
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+        </div>
+
+        <div className="relative aspect-video w-full overflow-hidden" style={{ transform: "translateZ(20px)" }}>
+          <img 
+            src={video.thumbnail || "https://via.placeholder.com/640x360?text=No+Thumbnail"} 
+            alt={video.title}
+            className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105 opacity-90' : 'group-hover:scale-110 opacity-100'}`}
+          />
+          <div className={`absolute inset-0 transition-colors duration-300 ${isSelected ? 'bg-green-900/40 mix-blend-overlay' : 'bg-gradient-to-t from-black/90 via-black/20 to-transparent'}`}></div>
+          
+          <a 
+            href={video.url}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-3 right-3 z-30 bg-black/60 hover:bg-green-500 text-white p-2 rounded-full backdrop-blur-md transition-colors"
+            title="Watch on YouTube"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+          </a>
+
+          <div className="absolute bottom-2 right-2 bg-black/80 text-xs font-semibold px-2 py-1 rounded">
+            {video.duration ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, '0')}` : "Vid"}
+          </div>
+        </div>
+
+        <div className="p-4 flex flex-col flex-1" style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
+          <h3 className="font-semibold text-sm line-clamp-2 leading-snug group-hover:text-green-300 transition-colors mb-2">
+            {video.title}
+          </h3>
+          
+          <div className="text-xs text-gray-400 mb-4 flex items-center space-x-2">
+            <span>{video.views ? new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.views) : '---'} views</span>
+            {video.topics && video.topics.length > 0 && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-gray-600"></span>
+                <span className="truncate text-green-400/80">{video.topics[0]}</span>
+              </>
+            )}
+          </div>
+
+          {progress && (
+            <div className="mt-auto mb-2" style={{ transform: "translateZ(40px)" }}>
+              <div className="flex justify-between text-xs mb-1 text-green-300 font-medium">
+                <span>{progress.label}</span>
+              </div>
+              <div className="w-full bg-black/40 rounded-full h-1.5 border border-white/10 overflow-hidden">
+                <motion.div 
+                  className="bg-green-500 h-1.5 shadow-[0_0_10px_rgba(34,197,94,0.8)]" 
+                  initial={{ width: '0%' }}
+                  animate={{ width: progress.percent }}
+                  transition={{ ease: "linear", duration: 0.5 }}
+                />
+              </div>
+            </div>
+          )}
+          
+          {video.rationale && !progress && (
+            <div className={`mt-auto p-2 rounded text-xs transition-colors ${
+              isSelected 
+                ? 'bg-green-500/20 border border-green-500/30 text-green-200' 
+                : 'bg-white/5 border border-white/10 text-gray-400'
+            }`}>
+              💡 {video.rationale}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
 
 export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap }) {
   const [selectedUrls, setSelectedUrls] = useState([]);
@@ -230,96 +363,15 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
             const isSelected = selectedUrls.includes(video.url);
             
             return (
-              <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.3, type: "spring" }}
-                key={video.url}
-                onClick={(e) => toggleSelect(video.url, e)}
-                className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 flex flex-col border ${
-                  isSelected 
-                    ? 'bg-green-900/30 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.15)] ring-1 ring-green-500/50' 
-                    : 'bg-white/5 border-white/10 hover:border-white/30'
-                }`}
-              >
-                {/* Custom Selection Checkbox (Top Left) */}
-                <div className="absolute top-4 left-4 z-30">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
-                    isSelected 
-                      ? 'bg-green-500 scale-110 shadow-[0_0_15px_rgba(34,197,94,0.6)]' 
-                      : 'bg-black/60 border-2 border-white/30 group-hover:border-white/60'
-                  }`}>
-                    {isSelected && (
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </div>
-                </div>
-
-                <div className="relative aspect-video w-full overflow-hidden">
-                  <img 
-                    src={video.thumbnail || "https://via.placeholder.com/640x360?text=No+Thumbnail"} 
-                    alt={video.title}
-                    className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105 opacity-90' : 'group-hover:scale-105 opacity-100'}`}
-                  />
-                  <div className={`absolute inset-0 transition-colors duration-300 ${isSelected ? 'bg-green-900/40 mix-blend-overlay' : 'bg-gradient-to-t from-black/90 via-black/20 to-transparent'}`}></div>
-                  
-                  {/* External Link Button */}
-                  <a 
-                    href={video.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute top-3 right-3 z-30 bg-black/60 hover:bg-green-500 text-white p-2 rounded-full backdrop-blur-md transition-colors"
-                    title="Watch on YouTube"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                  </a>
-
-                  <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs text-white z-20 font-mono">
-                    {video.duration ? `${Math.floor(video.duration/60)}:${(video.duration%60).toString().padStart(2, '0')}` : 'Video'}
-                  </div>
-                </div>
-                
-                <div className="p-4 flex-1 flex flex-col">
-                  <h3 className={`text-sm font-medium line-clamp-2 mb-2 transition-colors ${isSelected ? 'text-green-50' : 'text-gray-200 group-hover:text-white'}`}>
-                    {video.title}
-                  </h3>
-                  
-                  
-                  {/* Progress Bar UI */}
-                  {progresses[video.url] && (
-                    <div className="mt-auto mb-2">
-                      <div className="flex justify-between text-xs mb-1 text-green-300 font-medium">
-                        <span>{progresses[video.url].label}</span>
-                      </div>
-                      <div className="w-full bg-black/40 rounded-full h-1.5 border border-white/10 overflow-hidden">
-                        <motion.div 
-                          className="bg-green-500 h-1.5 shadow-[0_0_10px_rgba(34,197,94,0.8)]" 
-                          initial={{ width: '0%' }}
-                          animate={{ width: progresses[video.url].percent }}
-                          transition={{ ease: "linear", duration: 0.5 }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {video.rationale && !progresses[video.url] && (
-                    <div className={`mt-auto p-2 rounded text-xs transition-colors ${
-                      isSelected 
-                        ? 'bg-green-500/20 border border-green-500/30 text-green-200' 
-                        : 'bg-white/5 border border-white/10 text-gray-400'
-                    }`}>
-                      💡 {video.rationale}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
+              <VideoCard3D 
+              key={video.url} 
+              video={video} 
+              isSelected={isSelected} 
+              onToggleSelect={toggleSelect} 
+              progress={progresses[video.url]} 
+            />
+          );
+        })}
         </AnimatePresence>
       </motion.div>
     </div>
