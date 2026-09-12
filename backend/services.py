@@ -143,7 +143,7 @@ Output ONLY raw JSON with this exact schema:
     except Exception as e:
         raise Exception(f"AI Error: {e}")
 
-def search_youtube(query: str, search_type: str = "education"):
+def search_youtube(query: str, search_type: str = "education", original_query: str = None):
     ydl_opts_fast = {
         "quiet": True,
         "no_warnings": True,
@@ -209,6 +209,21 @@ def search_youtube(query: str, search_type: str = "education"):
                     except:
                         formatted_date = raw_date
                 
+                # Date filtering logic
+                if original_query and search_type == "music":
+                    orig = original_query.lower()
+                    is_latest_req = "latest" in orig or "new" in orig or "recent" in orig
+                    if is_latest_req and raw_date and len(raw_date) == 8:
+                        try:
+                            year = int(raw_date[:4])
+                            import datetime
+                            current_year = datetime.datetime.now().year
+                            # Reject if older than 3 years when "latest" is explicitly requested
+                            if current_year - year > 3:
+                                return None
+                        except:
+                            pass
+                            
                 return {
                     "title": best.get("title", "Unknown"),
                     "url": url,

@@ -42,9 +42,11 @@ app.add_middleware(
 class RoadmapRequest(BaseModel):
     query: str
 
+from typing import Optional
 class SearchRequest(BaseModel):
     search_query: str
     type: str = "education"
+    original_query: Optional[str] = None
 
 @app.post("/api/generate-roadmap")
 @limiter.limit("5/minute")
