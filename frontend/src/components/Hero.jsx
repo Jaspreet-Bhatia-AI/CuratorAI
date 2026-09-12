@@ -42,10 +42,11 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
       <motion.form 
         layout
         onSubmit={onSubmit}
-        className="w-full max-w-2xl relative group flex flex-col items-center"
+        className="w-full max-w-2xl flex flex-col items-center"
       >
-        <div className="absolute -inset-1 bg-gradient-to-r from-google-purple to-blue-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-        <div className="relative w-full flex items-center bg-google-surface/60 border border-white/10 backdrop-blur-xl p-2 rounded-[2rem]">
+        <div className="w-full relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-google-purple to-blue-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative w-full flex items-center bg-google-surface/60 border border-white/10 backdrop-blur-xl p-2 rounded-[2rem]">
           <a 
             href="https://youtube.com" 
             target="_blank" 
@@ -79,23 +80,23 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
           <button 
             type="button"
             onClick={() => handleSuggestion('study')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-google-purple/50 transition-all text-sm text-gray-300"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-white"
           >
-            <span>📚</span> Study Roadmap
+            <span>📚</span> Complete Python Developer Roadmap
           </button>
           <button 
             type="button"
             onClick={() => handleSuggestion('music')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/50 transition-all text-sm text-gray-300"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-white"
           >
-            <span>🎵</span> Music Mix
+            <span>🎵</span> Top Chill Lofi Beats Mix
           </button>
           <button 
             type="button"
             onClick={() => handleSuggestion('link')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-green-500/50 transition-all text-sm text-gray-300"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-white font-mono"
           >
-            <span>🔗</span> Paste Direct Link
+            <span>🔗</span> https://youtube.com/...
           </button>
         </div>
 
