@@ -89,8 +89,8 @@ The user will give you a request (e.g., 'Learn Python OOP' or 'latest punjabi so
 3. Generate the actual YouTube search queries in the "curriculum" array.
 
 IMPORTANT CURATION RULES:
-- FOR MUSIC: DO NOT hallucinate fake song names. DO NOT invent release years. ONLY use verified, real songs from the artist's discography. If you see years like 2025 or 2026 in the search context, IGNORE THEM—they are SEO spam.
-- FOR MUSIC: The search query must explicitly include the artist name and 'Audio' (e.g., "Mera Deewanapan Amrinder Gill Audio").
+- FOR MUSIC: NEVER invent songs. If you are provided with REAL YOUTUBE SEARCH RESULTS in the context, YOU MUST construct your playlist strictly using ONLY those exact videos. Do not invent any songs that are not in the context list.
+- FOR MUSIC: Your search_query should perfectly match the exact title from the context so that it fetches the correct video.
 - Provide a "rationale" explaining exactly WHY you chose this item/song.
 
 Output ONLY raw JSON with this exact schema:
@@ -156,7 +156,6 @@ def search_youtube(query: str, search_type: str = "education"):
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
-        "cookiesfrombrowser": ("brave",),
         "extractor_args": {"youtube": ["player_client=ios,web"]}
     }
     
