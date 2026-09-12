@@ -68,7 +68,7 @@ export default function Home() {
             const r = await fetch("/api/search", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ search_query: item.search_query })
+              body: JSON.stringify({ search_query: item.search_query, type: data.data.type || "education" })
             });
             const vData = await r.json();
             

@@ -90,7 +90,7 @@ def generate_roadmap_json(user_query: str):
     except Exception as e:
         raise Exception(f"AI Error: {e}")
 
-def search_youtube(query: str):
+def search_youtube(query: str, search_type: str = "education"):
     ydl_opts_fast = {
         "quiet": True,
         "no_warnings": True,
@@ -118,9 +118,16 @@ def search_youtube(query: str):
                 entries = list(info['entries'])
                 
                 valid_entries = [e for e in entries if e.get('view_count') is not None]
-                valid_entries = valid_entries if not valid_entries else sorted(valid_entries, key=lambda x: x['view_count'], reverse=True)
-                
-                best = valid_entries[0]
+                if not valid_entries:
+                    valid_entries = entries
+                    
+                # If it's music, trust YouTube's exact relevance (first result).
+                # If education, sort by views to filter out spam.
+                if search_type == "music":
+                    best = valid_entries[0]
+                else:
+                    valid_entries = sorted(valid_entries, key=lambda x: x.get('view_count', 0), reverse=True)
+                    best = valid_entries[0]
                 url = best.get("url")
                 
                 full_desc = ""

@@ -44,6 +44,7 @@ class RoadmapRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     search_query: str
+    type: str = "education"
 
 @app.post("/api/generate-roadmap")
 @limiter.limit("5/minute")
@@ -57,7 +58,7 @@ async def generate_roadmap(request: Request, req: RoadmapRequest):
 @app.post("/api/search")
 @limiter.limit("30/minute")
 async def search_video(request: Request, req: SearchRequest):
-    result = search_youtube(req.search_query)
+    result = search_youtube(req.search_query, req.type)
     if result:
         return {"success": True, "data": result}
     raise HTTPException(status_code=404, detail="Video not found")
