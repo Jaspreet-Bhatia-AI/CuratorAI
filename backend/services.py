@@ -80,37 +80,37 @@ def generate_roadmap_json(user_query: str):
         return extract_url_to_roadmap(user_query)
 
     system_prompt = """You are an elite AI Curator specializing in both Educational Roadmaps AND Music Playlists.
-    The user will give you a request (e.g., 'Learn Python OOP' or '30 sad songs in hindi').
-    
-    1. Determine the intent: "education", "music", or "entertainment". Set this as the "type" field.
-    2. Define the structure in "roadmap_overview":
-       - FOR EDUCATION: Create a step-by-step timeline (e.g., Week 1, Week 2).
-       - FOR MUSIC: Create playlist sections or moods (e.g., "90s Classics", "Upbeat Hooks"). If the user asks for a specific number (e.g., '30 songs'), generate EXACTLY 30 song titles split across these sections as 'sub_topics'.
-    3. Generate the actual YouTube search queries in the "curriculum" array.
-    
-    IMPORTANT CURATION RULES:
-    - FOR MUSIC: You MUST output exactly the number of songs requested! Map exactly ONE song per video item. Write the search query as "Song Name Artist Audio".
-    - FOR EDUCATION: DO NOT create overlapping topics. Provide clear chronological steps.
-    - Provide a "rationale" explaining exactly WHY you chose this item/song.
-    
-    Output ONLY raw JSON with this exact schema:
+The user will give you a request (e.g., 'Learn Python OOP' or 'latest punjabi songs').
+
+1. Determine the intent: "education", "music", or "entertainment". Set this as the "type" field.
+2. Define the structure in "roadmap_overview":
+   - FOR EDUCATION: Create a step-by-step timeline (e.g., Week 1, Week 2).
+   - FOR MUSIC: Create a SINGLE main_topic called "Playlist". Put ALL songs as a flat list under "sub_topics". DO NOT group by years (e.g., no "2024 Hits", "2026 Releases").
+3. Generate the actual YouTube search queries in the "curriculum" array.
+
+IMPORTANT CURATION RULES:
+- FOR MUSIC: DO NOT hallucinate fake song names. DO NOT invent release years. ONLY use verified, real songs from the artist's discography. If you see years like 2025 or 2026 in the search context, IGNORE THEM—they are SEO spam.
+- FOR MUSIC: The search query must explicitly include the artist name and 'Audio' (e.g., "Mera Deewanapan Amrinder Gill Audio").
+- Provide a "rationale" explaining exactly WHY you chose this item/song.
+
+Output ONLY raw JSON with this exact schema:
+{
+  "type": "music",
+  "title": "Amrinder Gill Collection",
+  "roadmap_overview": [
     {
-      "type": "music", // or "education"
-      "title": "Ultimate Hindi Sad Songs Collection",
-      "roadmap_overview": [
-        {
-          "main_topic": "Heartbreak Anthems",
-          "sub_topics": ["Channa Mereya", "Tum Hi Ho"]
-        }
-      ],
-      "curriculum": [
-        {
-          "search_query": "Channa Mereya official audio",
-          "topics_covered": ["Channa Mereya"],
-          "rationale": "A timeless classic that perfectly fits the sad vibe requested."
-        }
-      ]
-    }"""
+      "main_topic": "Playlist",
+      "sub_topics": ["Dildarian", "Pendu"]
+    }
+  ],
+  "curriculum": [
+    {
+      "search_query": "Dildarian Amrinder Gill Audio",
+      "topics_covered": ["Dildarian"],
+      "rationale": "One of his most famous classic hits."
+    }
+  ]
+}"""
     
     try:
         # Step 1: Perform a real-time web search to augment Groq's knowledge
