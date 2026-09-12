@@ -17,14 +17,16 @@ export default function Roadmap({ roadmap, isLoading, selectedTopic, onSelectTop
 
   if (!roadmap) return null;
 
+  const isMusic = roadmap.type === 'music' || (roadmap.title && roadmap.title.toLowerCase().includes('playlist'));
+
   return (
     <div className="bg-google-surface/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 h-full">
       <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-google-purple shadow-[0_0_10px_#bbaaff]"></span>
-        {roadmap.title || "Learning Roadmap"}
+        {roadmap.title || (isMusic ? "Curated Playlist" : "Learning Roadmap")}
       </h2>
       
-      <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
+      <div className={`space-y-6 relative ${!isMusic ? "before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent" : ""}`}>
         {roadmap.roadmap_overview && roadmap.roadmap_overview.map((step, index) => {
           const title = typeof step === 'string' ? step : step.main_topic;
           const subtopics = typeof step === 'string' ? [] : (step.sub_topics || []);
@@ -40,7 +42,7 @@ export default function Roadmap({ roadmap, isLoading, selectedTopic, onSelectTop
               className="relative flex items-start group gap-4 cursor-pointer"
             >
               <div className={`flex items-center justify-center w-10 h-10 rounded-full border transition-colors shrink-0 z-10 mt-1 shadow-[0_0_15px_rgba(187,170,255,0.2)] ${isSelected ? 'bg-google-purple text-google-dark border-google-purple' : 'bg-google-dark text-gray-300 border-white/20 group-hover:text-google-purple group-hover:border-google-purple'}`}>
-                {index + 1}
+                {isMusic ? <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg> : (index + 1)}
               </div>
               
               <div className={`flex-1 rounded-xl p-4 transition-all backdrop-blur-md border ${isSelected ? 'bg-google-purple/10 border-google-purple shadow-[0_0_20px_rgba(187,170,255,0.1)]' : 'bg-white/5 border-white/10 hover:border-google-purple/50'}`}>

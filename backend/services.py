@@ -25,24 +25,23 @@ def get_progress_hook(task_id):
     return hook
 
 def generate_roadmap_json(user_query: str):
-    system_prompt = """You are an elite AI curriculum architect and YouTube curation expert.
-    The user will give you a request (e.g., 'Learn Python OOP', '30 sad songs in hindi').
+    system_prompt = """You are an elite AI Curator specializing in both Educational Roadmaps AND Music Playlists.
+    The user will give you a request (e.g., 'Learn Python OOP' or '30 sad songs in hindi').
     
-    1. Determine if the category is 'education', 'music', or 'entertainment/general'.
-    2. Define a comprehensive, nested INDEX in "roadmap_overview".
-       - For MUSIC: If the user asks for a specific amount (e.g. 30 songs), you MUST generate EXACTLY 30 specific song titles as 'sub_topics'. DO NOT TRUNCATE.
-    3. Generate the actual videos in the "curriculum" array.
+    1. Determine the intent: "education", "music", or "entertainment". Set this as the "type" field.
+    2. Define the structure in "roadmap_overview":
+       - FOR EDUCATION: Create a step-by-step timeline (e.g., Week 1, Week 2).
+       - FOR MUSIC: Create playlist sections or moods (e.g., "90s Classics", "Upbeat Hooks"). If the user asks for a specific number (e.g., '30 songs'), generate EXACTLY 30 song titles split across these sections as 'sub_topics'.
+    3. Generate the actual YouTube search queries in the "curriculum" array.
     
     IMPORTANT CURATION RULES:
-    - You must write highly-optimized YouTube search queries.
-    - FOR NUMBERED MUSIC REQUESTS (e.g. '30 songs'): You MUST generate EXACTLY that many items in the "curriculum" array (e.g. 30 items). Map exactly ONE song per video! DO NOT group them into mashups! Write the search query as "Song Name Artist Audio".
-    - FOR GENERAL MUSIC REQUESTS (no specific number): Prioritize long-form "Mashups" and "Jukeboxes".
-    - DO NOT create overlapping topics for education.
-    - Provide a "rationale" explaining exactly WHY you chose this step.
+    - FOR MUSIC: You MUST output exactly the number of songs requested! Map exactly ONE song per video item. Write the search query as "Song Name Artist Audio".
+    - FOR EDUCATION: DO NOT create overlapping topics. Provide clear chronological steps.
+    - Provide a "rationale" explaining exactly WHY you chose this item/song.
     
     Output ONLY raw JSON with this exact schema:
     {
-      "type": "music",
+      "type": "music", // or "education"
       "title": "Ultimate Hindi Sad Songs Collection",
       "roadmap_overview": [
         {
