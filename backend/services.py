@@ -148,7 +148,8 @@ def download_video(url: str, output_dir: str, format_type: str = "video_high", t
     elif format_type == "video_fast":
         ydl_opts = {
             "outtmpl": outtmpl,
-            "format": "best[ext=mp4]/best",
+            "format": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+            "merge_output_format": "mp4",
             "quiet": True,
             "no_warnings": True,
             "progress_hooks": [get_progress_hook(task_id)] if task_id else []
