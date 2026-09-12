@@ -123,13 +123,22 @@ Output ONLY raw JSON with this exact schema:
         else:
             try:
                 import urllib.request, urllib.parse, json
-                url = f"https://itunes.apple.com/search?term={urllib.parse.quote(user_query)}&entity=song&limit=20"
+                url = f"https://itunes.apple.com/search?term={urllib.parse.quote(user_query)}&entity=song&limit=50"
                 req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=5) as response:
                     data = json.loads(response.read())
                     if 'results' in data and len(data['results']) > 0:
                         realtime_context = "OFFICIAL MUSIC DATABASE RESULTS (USE THESE EXACT TRACK NAMES FOR YOUR PLAYLIST):\n"
-                        for i, track in enumerate(data['results']):
+                        
+                        # Sort by releaseDate descending to guarantee newest songs are prioritized
+                        sorted_tracks = sorted(
+                            data['results'], 
+                            key=lambda x: x.get('releaseDate', '1970-01-01'), 
+                            reverse=True
+                        )
+                        
+                        # Take the top 15 newest
+                        for i, track in enumerate(sorted_tracks[:15]):
                             t_name = track.get('trackName', '')
                             a_name = track.get('artistName', '')
                             r_date = track.get('releaseDate', '')[:4]
@@ -188,15 +197,13 @@ def search_youtube(query: str, search_type: str = "education", original_query: s
                     valid_entries = [e for e in entries if e.get('view_count') is not None]
                     if not valid_entries:
                         valid_entries = entries
-                    if search_type == "music":
-                        best = valid_entries[0]
-                    else:
-                        valid_entries = sorted(valid_entries, key=lambda x: x.get('view_count', 0), reverse=True)
-                        best = valid_entries[0]
-                    url = best.get("url")
+                    if search_type != "music":
+                        valid_entries = [sorted(valid_entries, key=lambda x: x.get('view_count', 0), reverse=True)[0]]
                 else:
                     raise Exception("No results found.")
                 
+            for best in valid_entries:
+                url = best.get("url")
                 full_desc = ""
                 raw_date = best.get("upload_date")
                 likes = best.get("like_count")
@@ -232,7 +239,7 @@ def search_youtube(query: str, search_type: str = "education", original_query: s
                             current_year = datetime.datetime.now().year
                             # Reject if older than 3 years when "latest" is explicitly requested
                             if current_year - year > 3:
-                                return None
+                                continue # SKIP THIS OLD VIDEO AND TRY THE NEXT ONE
                         except:
                             pass
                             
@@ -247,6 +254,7 @@ def search_youtube(query: str, search_type: str = "education", original_query: s
                     "channel": channel,
                     "likes": likes
                 }
+            return None # All videos failed the date filter
     except Exception as e:
         print(f"Search error for {query}: {e}")
     return None
