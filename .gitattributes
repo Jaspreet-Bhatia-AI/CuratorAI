@@ -1,2 +1,31 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Python
+*.py text diff=python
+*.pyc binary
+
+# JavaScript / React
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+package-lock.json binary
+
+# Shell scripts
+*.sh text eol=lf
+
+# Media (if accidentally committed, treat as binary)
+*.mp4 binary
+*.mp3 binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+# Ignore lockfiles and generated files in GitHub language statistics
+package-lock.json linguist-generated=true
+frontend/dist/** linguist-generated=true
+backend/venv/** linguist-vendored=true
