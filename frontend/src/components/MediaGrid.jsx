@@ -89,13 +89,29 @@ const VideoCard3D = ({ video, isSelected, onToggleSelect, progress }) => {
         </div>
 
         <div className="p-4 flex flex-col flex-1" style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
-          <h3 className="font-semibold text-sm line-clamp-2 leading-snug group-hover:text-green-300 transition-colors mb-2">
+          <h3 className="font-semibold text-sm line-clamp-2 leading-snug group-hover:text-green-300 transition-colors mb-1">
             {video.title}
           </h3>
           
-          <div className="text-xs text-gray-400 mb-4 flex items-center space-x-2 flex-wrap">
+          {video.channel && (
+            <div className="text-xs text-gray-300 font-medium mb-2 truncate">
+              {video.channel}
+            </div>
+          )}
+          
+          <div className="text-xs text-gray-400 mb-4 flex items-center gap-2 flex-wrap">
             <span className="whitespace-nowrap">{video.views ? new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.views) : '---'} views</span>
             
+            {video.likes && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-gray-600"></span>
+                <span className="whitespace-nowrap flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.56l2.3-9.1A2 2 0 0 0 20.6 9H14zM7 22H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h3v13z"/></svg>
+                  {new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.likes)}
+                </span>
+              </>
+            )}
+
             {video.upload_date && (
               <>
                 <span className="w-1 h-1 rounded-full bg-gray-600"></span>

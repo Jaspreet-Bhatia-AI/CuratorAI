@@ -188,12 +188,18 @@ def search_youtube(query: str, search_type: str = "education"):
                 
                 full_desc = ""
                 raw_date = best.get("upload_date")
+                likes = best.get("like_count")
+                channel = best.get("uploader") or best.get("channel")
                 try:
                     with yt(ydl_opts_full) as yd_full:
                         full_info = yd_full.extract_info(url, download=False)
                         full_desc = full_info.get("description", "")
                         if full_info.get("upload_date"):
                             raw_date = full_info.get("upload_date")
+                        if full_info.get("like_count"):
+                            likes = full_info.get("like_count")
+                        if full_info.get("uploader") or full_info.get("channel"):
+                            channel = full_info.get("uploader") or full_info.get("channel")
                 except:
                     full_desc = best.get("description", "")
                 formatted_date = None
@@ -211,7 +217,9 @@ def search_youtube(query: str, search_type: str = "education"):
                     "views": best.get("view_count"),
                     "duration": best.get("duration"),
                     "description": full_desc,
-                    "upload_date": formatted_date
+                    "upload_date": formatted_date,
+                    "channel": channel,
+                    "likes": likes
                 }
     except Exception as e:
         print(f"Search error for {query}: {e}")
