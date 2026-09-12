@@ -79,17 +79,11 @@ def generate_roadmap_json(user_query: str):
     if user_query.startswith("http://") or user_query.startswith("https://"):
         return extract_url_to_roadmap(user_query)
 
-    system_prompt = """You are an elite AI Curator specializing in both Educational Roadmaps AND Music Playlists.
-The user will give you a request (e.g., 'Learn Python OOP' or 'latest punjabi songs').
-
-1. Determine the intent: "education", "music", or "entertainment". Set this as the "type" field.
-2. Define the structure in "roadmap_overview":
-   - FOR EDUCATION: Create a step-by-step timeline (e.g., Week 1, Week 2).
-   - FOR MUSIC: Create a SINGLE main_topic called "Playlist". Put ALL songs as a flat list under "sub_topics". DO NOT group by years (e.g., no "2024 Hits", "2026 Releases").
-3. Generate the actual YouTube search queries in the "curriculum" array.
+    system_prompt = """You are an expert curriculum designer and curator.
+Your task is to take the user's request and structure it into a logical JSON roadmap or playlist.
 
 IMPORTANT CURATION RULES:
-- FOR MUSIC: NEVER invent songs. If provided with OFFICIAL MUSIC DATABASE RESULTS, you MUST build your playlist using strictly those exact track names.
+- FOR MUSIC: NEVER invent songs. If provided with OFFICIAL MUSIC DATABASE RESULTS, you MUST build your playlist using strictly those exact track names. DO NOT invent any songs.
 - FOR MUSIC: To ensure the correct official video is fetched, your search_query MUST be perfectly formatted as: "{Exact Track Name} {Artist Name} Official Audio" (e.g., "Dildarian Amrinder Gill Official Audio").
 - Provide a "rationale" explaining exactly WHY you chose this item/song.
 
@@ -105,7 +99,7 @@ Output ONLY raw JSON with this exact schema:
   ],
   "curriculum": [
     {
-      "search_query": "Dildarian Amrinder Gill Audio",
+      "search_query": "Dildarian Amrinder Gill Official Audio",
       "topics_covered": ["Dildarian"],
       "rationale": "One of his most famous classic hits."
     }
@@ -113,18 +107,36 @@ Output ONLY raw JSON with this exact schema:
 }"""
     
     try:
-        # Step 1: Perform a real-time web search to augment Groq's knowledge
         realtime_context = ""
-        try:
-            results = DDGS().text(user_query, max_results=4)
-            if results:
-                realtime_context = "REAL-TIME INTERNET SEARCH RESULTS TO AUGMENT YOUR KNOWLEDGE:\n"
-                for r in results:
-                    realtime_context += f"- {r.get('title')}: {r.get('body')}\n"
-        except Exception as e:
-            print(f"Web search failed: {e}")
-            pass
-            
+        music_keywords = ["song", "songs", "music", "audio", "playlist", "singer", "artist", "beats", "lofi"]
+        is_music_query = any(kw in user_query.lower() for kw in music_keywords)
+        
+        if not is_music_query:
+            try:
+                results = DDGS().text(user_query, max_results=4)
+                if results:
+                    realtime_context = "REAL-TIME INTERNET SEARCH RESULTS TO AUGMENT YOUR KNOWLEDGE:\n"
+                    for r in results:
+                        realtime_context += f"- {r.get('title')}: {r.get('body')}\n"
+            except Exception as e:
+                pass
+        else:
+            try:
+                import urllib.request, urllib.parse, json
+                url = f"https://itunes.apple.com/search?term={urllib.parse.quote(user_query)}&entity=song&limit=20"
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    data = json.loads(response.read())
+                    if 'results' in data and len(data['results']) > 0:
+                        realtime_context = "OFFICIAL MUSIC DATABASE RESULTS (USE THESE EXACT TRACK NAMES FOR YOUR PLAYLIST):\n"
+                        for i, track in enumerate(data['results']):
+                            t_name = track.get('trackName', '')
+                            a_name = track.get('artistName', '')
+                            r_date = track.get('releaseDate', '')[:4]
+                            realtime_context += f"- {t_name} by {a_name} (Released: {r_date})\n"
+            except Exception as e:
+                pass
+                
         # Combine user query with real-time context
         augmented_query = user_query
         if realtime_context:
