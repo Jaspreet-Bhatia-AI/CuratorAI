@@ -21,7 +21,7 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-google-purple to-blue-400 drop-shadow-[0_0_15px_rgba(187,170,255,0.4)]">roadmaps & playlists</span>
         </h1>
         <p className="text-gray-400 text-lg md:text-xl">
-          Enter a topic, artist, or vibe, and let our AI instantly generate the perfect YouTube curriculum or music mix for you.
+          Transform any topic, artist, or vibe into a structured learning path or a curated music mix in seconds.
         </p>
       </motion.div>
 
@@ -51,6 +51,9 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
             )}
           </button>
+        </div>
+        <div className="mt-4 text-sm text-gray-500 font-medium tracking-wide">
+          Try: <span className="text-gray-400">"Complete React.js Roadmap"</span> or <span className="text-gray-400">"Late night coding lofi beats"</span>
         </div>
 
         {/* Dynamic Percentage Loading Bar */}

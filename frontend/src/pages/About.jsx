@@ -20,13 +20,12 @@ export default function About() {
       className="max-w-7xl mx-auto px-6 py-32 space-y-24"
     >
       {/* Intro Section */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <div className="space-y-6">
+      <section className="max-w-4xl space-y-6">
           <h1 className="text-5xl font-bold tracking-tight">
             Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-google-purple to-blue-400">Jaspreet Bhatia</span>
           </h1>
           <p className="text-xl text-gray-400 leading-relaxed">
-            I am a Full-Stack AI Developer and Cloud Engineer specializing in artificial intelligence, modern web architectures, and scalable cloud solutions.
+            I am a Full-Stack AI Developer and Cloud Engineer specializing in artificial intelligence, modern web architectures, and scalable cloud solutions under my studio brand, <strong>JB AI</strong>.
           </p>
           <div className="flex gap-4 pt-4">
             <a 
@@ -44,33 +43,24 @@ export default function About() {
               Connect on LinkedIn
             </a>
           </div>
-        </div>
-        
-        <div className="relative aspect-square max-w-md mx-auto w-full">
-          <div className="absolute inset-0 bg-gradient-to-tr from-google-purple to-blue-600 rounded-full blur-[100px] opacity-30"></div>
-          <div className="relative h-full w-full bg-google-surface border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center">
-            {/* Profile Picture */}
-            <img src="/jaspreet-bhatia.jpeg" alt="Jaspreet Bhatia" className="w-full h-full object-cover object-center" />
-          </div>
-        </div>
       </section>
 
       {/* Project Info & Contact */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-16">
         <div className="space-y-6">
-          <h2 className="text-3xl font-semibold">About CuratorAI</h2>
+          <h2 className="text-3xl font-semibold">Engineering Curator by JB AI</h2>
           <p className="text-gray-400 leading-relaxed">
-            CuratorAI is a next-generation platform designed to eliminate the noise of the internet. By leveraging advanced Large Language Models (LLMs) and custom YouTube scraping logic, it instantly architectures a perfect, customized learning roadmap or media playlist based purely on what you want to learn or hear.
+            Curator is an autonomous media platform built to eliminate internet noise. Under the hood, it utilizes <strong>Retrieval-Augmented Generation (RAG)</strong> by performing real-time internet searches to bypass AI knowledge cutoffs. The robust backend integrates localized Node.js environments and <strong>FFmpeg</strong> processing to bypass complex JavaScript anti-bot algorithms, ensuring seamless media extraction.
           </p>
           <ul className="space-y-4 text-gray-400">
             <li className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-google-purple"></span> Built with React & Framer Motion
+              <span className="w-2 h-2 rounded-full bg-google-purple"></span> <strong>Frontend:</strong> React, Tailwind CSS & Framer Motion 3D
             </li>
             <li className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span> Powered by FastAPI & Python
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span> <strong>Backend:</strong> Python FastAPI, yt-dlp, and FFmpeg
             </li>
             <li className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span> AI logic driven by Groq
+              <span className="w-2 h-2 rounded-full bg-green-500"></span> <strong>AI Engine:</strong> Groq LLMs augmented with DuckDuckGo RAG
             </li>
           </ul>
         </div>
@@ -96,7 +86,7 @@ export default function About() {
                 value={formData.message}
                 onChange={(e) => setFormData({...formData, message: e.target.value})}
                 className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-google-purple transition-colors h-32 resize-none"
-                placeholder="Let's build robots together..."
+                placeholder="Let's build something amazing..."
               ></textarea>
             </div>
             <button 
