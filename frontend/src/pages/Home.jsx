@@ -65,25 +65,36 @@ export default function Home() {
         // Fetch videos in parallel, updating progress as each one finishes
         const promises = curriculum.map(async (item) => {
           try {
-            const r = await fetch("/api/search", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ search_query: item.search_query, type: data.data.type || "education", original_query: query })
-            });
-            const vData = await r.json();
-            
-            if(vData.success) {
-              setVideos(prev => [...prev, { 
-                ...vData.data, 
-                rationale: item.rationale,
-                topics: item.topics_covered 
-              }]);
+            if (item.url) {
+                // BYPASS SEARCH: The backend pre-resolved this video (Playlist mode)
+                setVideos(prev => [...prev, { 
+                  title: item.title,
+                  url: item.url,
+                  thumbnail: item.thumbnail,
+                  uploader: item.uploader,
+                  rationale: item.rationale,
+                  topics: item.topics_covered || []
+                }]);
+            } else {
+                const r = await fetch("/api/search", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ search_query: item.search_query, type: data.data.type || "education", original_query: query })
+                });
+                const vData = await r.json();
+                
+                if(vData.success) {
+                  setVideos(prev => [...prev, { 
+                    ...vData.data, 
+                    rationale: item.rationale,
+                    topics: item.topics_covered 
+                  }]);
+                }
             }
           } catch (e) {
             console.error("Search failed for:", item.search_query, e);
           } finally {
             completedVideos++;
-            // Calculate progress from 45% to 100%
             const currentProgress = Math.floor(45 + (completedVideos / totalVideos) * 55);
             setProgress(currentProgress > 100 ? 100 : currentProgress);
             setLoadingStatus(`Curating videos (${completedVideos}/${totalVideos})...`);

@@ -86,6 +86,9 @@ IMPORTANT CURATION RULES:
 - NEVER invent content. If provided with REAL YOUTUBE SEARCH RESULTS in your context, you MUST use those exact titles to build your roadmap/playlist. This is crucial for surfacing brand new releases.
 - FOR MUSIC: To ensure the correct official video is fetched, your search_query MUST be perfectly formatted as: "{Exact Track Name} {Artist Name} Official Audio" (e.g., "Dua Amrinder Gill Official Audio").
 - Provide a "rationale" explaining exactly WHY you chose this item/song.
+- IF the user asks for a massive quantity (e.g., 50 or 100 items), the backend will automatically inject a pre-resolved 100-track playlist into the `curriculum` array. 
+- You MUST leave the `curriculum` array EMPTY (e.g. "curriculum": []) if they asked for >15 items, to save processing time.
+- However, you MUST still build the `roadmap_overview` on the left. Extract the individual song names from the YouTube descriptions in the context and list them in the `sub_topics` array so the user can see what they are getting.
 
 Output ONLY raw JSON with this exact schema:
 {
@@ -115,13 +118,47 @@ Output ONLY raw JSON with this exact schema:
             import yt_dlp
             ydl_opts = {"quiet": True, "extract_flat": True, "noplaylist": True}
             with yt_dlp.YoutubeDL(ydl_opts) as yd:
-                # Ask YouTube for 10 results based on the exact user query
-                info = yd.extract_info(f"ytsearch10:{user_query}", download=False)
+                # Dynamically size the RAG limit based on the user's request, capped at 30
+                import re
+                numbers = re.findall(r'\d+', user_query)
+                rag_limit = 15
+                if numbers:
+                    max_requested = max([int(n) for n in numbers])
+                    if max_requested > 15:
+                        rag_limit = min(max_requested, 30)
+                
+                info = yd.extract_info(f"ytsearch{rag_limit}:{user_query}", download=False)
                 if 'entries' in info and len(info['entries']) > 0:
                     realtime_context = "REAL YOUTUBE SEARCH RESULTS (USE THESE TO DISCOVER BRAND NEW OR SPECIFIC CONTENT):\n"
-                    for e in info['entries']:
+                    import urllib.request, json
+                    needs_deep_fetch = False
+                    if numbers and max([int(n) for n in numbers]) >= 20:
+                        needs_deep_fetch = True
+                        
+                    for i, e in enumerate(info['entries']):
                         if e.get('title'):
-                            realtime_context += f"- {e.get('title')} (Channel: {e.get('uploader', 'Unknown')})\n"
+                            desc = e.get('description', '')
+                            
+                            # DEEP FETCH LOGIC: If a large list is requested, fetch full descriptions of the top 3 results
+                            if needs_deep_fetch and i < 3:
+                                try:
+                                    url = e.get('url')
+                                    if not url and e.get('id'):
+                                        url = f"https://www.youtube.com/watch?v={e.get('id')}"
+                                    if url:
+                                        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                                        with urllib.request.urlopen(req, timeout=3) as response:
+                                            html = response.read().decode('utf-8')
+                                            match = re.search(r'ytInitialPlayerResponse\s*=\s*(\{.*?\});', html)
+                                            if match:
+                                                v_data = json.loads(match.group(1))
+                                                full_desc = v_data.get('videoDetails', {}).get('shortDescription', '')
+                                                if full_desc: desc = full_desc
+                                except Exception as ex:
+                                    pass
+                            
+                            desc = desc[:3000].replace('\n', ' | ') if desc else ''
+                            realtime_context += f"- Title: {e.get('title')} (Channel: {e.get('uploader', 'Unknown')})\n  Description: {desc}\n"
         except Exception as e:
             print(f"Universal RAG failed: {e}")
             pass
