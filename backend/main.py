@@ -72,6 +72,83 @@ def remove_file(path: str):
         print(f"Error removing temp file {path}: {e}")
 
 
+
+import uuid
+import zipfile
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+batch_jobs = {}
+
+class BatchPrepareRequest(BaseModel):
+    urls: list[str]
+    format: str = "audio"
+
+def cleanup_batch_files(paths: list[str]):
+    time.sleep(10) # buffer to ensure FileResponse finishes streaming
+    for p in paths:
+        try: os.remove(p)
+        except: pass
+
+@app.post("/api/batch-prepare")
+@limiter.limit("5/minute")
+async def batch_prepare(request: Request, req: BatchPrepareRequest):
+    batch_id = uuid.uuid4().hex
+    batch_jobs[batch_id] = {"urls": req.urls, "format": req.format}
+    return {"success": True, "batch_id": batch_id}
+
+@app.get("/api/batch-download")
+@limiter.limit("5/minute")
+async def batch_download(request: Request, background_tasks: BackgroundTasks, batch_id: str, task_id: str = None):
+    if batch_id not in batch_jobs:
+        raise HTTPException(status_code=404, detail="Batch job not found")
+        
+    job = batch_jobs[batch_id]
+    urls = job["urls"]
+    format_type = job["format"]
+    
+    download_dir = os.path.join(os.getcwd(), "temp_downloads")
+    os.makedirs(download_dir, exist_ok=True)
+    
+    downloaded_files = []
+    
+    if task_id:
+        DOWNLOAD_PROGRESS[task_id] = {"status": "downloading", "percent": f"Fetching {len(urls)} items..."}
+        
+    def download_worker(url):
+        return download_video(url, download_dir, format_type, None)
+
+    # Download in parallel
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        results = executor.map(download_worker, urls)
+        for res in results:
+            if res and os.path.exists(res):
+                downloaded_files.append(res)
+                
+    if not downloaded_files:
+        raise HTTPException(status_code=500, detail="Failed to download videos")
+        
+    if task_id:
+        DOWNLOAD_PROGRESS[task_id] = {"status": "processing", "percent": "Zipping files..."}
+        
+    zip_filename = f"Curator_Collection_{uuid.uuid4().hex[:6]}.zip"
+    zip_filepath = os.path.join(download_dir, zip_filename)
+    
+    with zipfile.ZipFile(zip_filepath, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for file in downloaded_files:
+            zipf.write(file, os.path.basename(file))
+            
+    background_tasks.add_task(cleanup_batch_files, downloaded_files + [zip_filepath])
+    
+    if task_id:
+        DOWNLOAD_PROGRESS[task_id] = {"status": "processing", "percent": "100%"}
+        
+    return FileResponse(
+        path=zip_filepath,
+        filename=zip_filename,
+        media_type="application/zip"
+    )
+
 @app.get("/api/progress")
 @limiter.limit("60/minute")
 async def get_progress(request: Request, task_id: str):

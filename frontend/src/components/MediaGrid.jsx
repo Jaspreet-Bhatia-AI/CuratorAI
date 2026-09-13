@@ -263,11 +263,11 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
     );
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (selectedUrls.length === 0) return;
     
-    selectedUrls.forEach((url, index) => {
-      setTimeout(() => {
+    if (selectedUrls.length === 1) {
+        const url = selectedUrls[0];
         const taskId = Math.random().toString(36).substring(7);
         
         setProgresses(prev => ({ 
@@ -294,9 +294,7 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
                 clearInterval(interval);
               }
             }
-          } catch (e) {
-            // ignore network errors during poll
-          }
+          } catch (e) {}
         }, 1000);
 
         const link = document.createElement("a");
@@ -305,8 +303,58 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      }, index * 1000);
-    });
+    } else {
+        const taskId = Math.random().toString(36).substring(7);
+        
+        const batchProgress = {};
+        selectedUrls.forEach(url => {
+          batchProgress[url] = { percent: 'Batching', status: 'fetching', label: 'Preparing ZIP...' };
+        });
+        setProgresses(prev => ({ ...prev, ...batchProgress }));
+        
+        try {
+          const prepareRes = await fetch('/api/batch-prepare', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ urls: selectedUrls, format: downloadFormat })
+          });
+          const prepareData = await prepareRes.json();
+          
+          if (prepareData.success) {
+            const interval = setInterval(async () => {
+              try {
+                const res = await fetch(`/api/progress?task_id=${taskId}`);
+                const data = await res.json();
+                
+                if (data.status !== 'waiting') {
+                  const updatedProgress = {};
+                  selectedUrls.forEach(url => {
+                    updatedProgress[url] = {
+                      percent: data.percent,
+                      status: data.status,
+                      label: data.percent
+                    };
+                  });
+                  setProgresses(prev => ({ ...prev, ...updatedProgress }));
+                  
+                  if (data.status === 'processing' && data.percent === '100%') {
+                    clearInterval(interval);
+                  }
+                }
+              } catch (e) {}
+            }, 1000);
+
+            const link = document.createElement("a");
+            link.href = `/api/batch-download?batch_id=${prepareData.batch_id}&task_id=${taskId}`;
+            link.setAttribute("download", "");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        } catch (error) {
+          console.error("Batch failed", error);
+        }
+    }
   };
 
   return (
