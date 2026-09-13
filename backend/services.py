@@ -1,3 +1,4 @@
+import requests
 from yt_dlp import YoutubeDL as yt
 import os
 import json
@@ -177,7 +178,53 @@ Output ONLY raw JSON with this exact schema:
             max_tokens=8000,
             response_format={"type": "json_object"}
         )
-        return json.loads(response.choices[0].message.content)
+        response_json = json.loads(response.choices[0].message.content)
+        
+        # --- PLAYLIST INJECTION ARCHITECTURE ---
+        import re as re_regex
+        import urllib.request
+        import urllib.parse
+        import yt_dlp
+        
+        numbers = re_regex.findall(r'\d+', user_query)
+        max_requested = max([int(n) for n in numbers]) if numbers else 0
+        
+        if max_requested >= 15:
+            search_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(user_query)}&sp=EgIQAw%253D%253D"
+            try:
+                req = urllib.request.Request(search_url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    html = resp.read().decode('utf-8')
+                    playlists = re_regex.findall(r'"playlistId":"(PL[a-zA-Z0-9_-]+)"', html)
+                    if playlists:
+                        playlist_url = f"https://www.youtube.com/playlist?list={playlists[0]}"
+                        ydl_opts = {"quiet": True, "extract_flat": True}
+                        with yt_dlp.YoutubeDL(ydl_opts) as yd:
+                            info = yd.extract_info(playlist_url, download=False)
+                            if 'entries' in info:
+                                entries = info['entries'][:min(max_requested, 100)]
+                                injected_curriculum = []
+                                for e in entries:
+                                    if e.get('title') and e.get('url'):
+                                        injected_curriculum.append({
+                                            "search_query": e.get('title'),
+                                            "title": e.get('title'),
+                                            "url": e.get('url'),
+                                            "thumbnail": e.get('thumbnails', [{}])[-1].get('url') if e.get('thumbnails') else None,
+                                            "uploader": e.get('uploader', 'Unknown'),
+                                            "topics_covered": [response_json.get("roadmap_overview", [{}])[0].get("main_topic", "Playlist Track")],
+                                            "rationale": "Extracted directly from top YouTube playlist to bypass rate limits."
+                                        })
+                                response_json['curriculum'] = injected_curriculum
+                                # Force the Roadmap to perfectly match the injected playlist tracks
+                                response_json['roadmap_overview'] = [{
+                                    "main_topic": "Top 100 Tracks Collection",
+                                    "sub_topics": [t['title'] for t in injected_curriculum]
+                                }]
+            except Exception as ex:
+                print("Playlist injection failed:", ex)
+                
+        return response_json
     except Exception as e:
         raise Exception(f"AI Error: {e}")
 

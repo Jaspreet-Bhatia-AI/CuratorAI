@@ -11,6 +11,7 @@ import { Toaster } from 'react-hot-toast';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
 import LoginModal from './components/LoginModal';
+import SettingsModal from './components/SettingsModal';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -36,6 +37,7 @@ function App() {
         <Toaster position="bottom-right" toastOptions={{ style: { background: "#1a1a1a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" } }} />
                 <Navbar />
         <LoginModal />
+        <SettingsModal />
         <div className="flex-1 flex flex-col">
           <AnimatedRoutes />
         </div>
