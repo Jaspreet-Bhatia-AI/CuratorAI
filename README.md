@@ -1,87 +1,38 @@
-# CuratorAI (AI YouTube Downloader) 🚀
+# Curator AI 🎵📚
 
-CuratorAI is a next-generation full-stack application that leverages Large Language Models (LLMs) to automatically generate highly-optimized learning roadmaps and music playlists. It instantly queries YouTube to find the perfect videos for every step, provides a sleek interactive dashboard to filter results, and allows you to download the actual `.mp4` video files directly to your device.
+Transform any topic, artist, or vibe into a structured learning path or a curated music mix in seconds. Curator AI sits at the intersection of AI generation and media downloading.
 
-## ✨ Features
-- **AI-Powered Roadmaps:** Type in any topic (e.g., "Learn Python OOP" or "30 sad songs in hindi"), and the Groq LLM will architect a complete step-by-step curriculum.
-- **Smart Filtering & Deduplication:** Click on any step in the roadmap to instantly filter the video grid. Duplicate videos covering multiple topics are automatically merged.
-- **Beautiful UI/UX:** Built with React, Tailwind CSS, and Framer Motion for a fluid, glassmorphism-inspired "Google Stitch" aesthetic.
-- **Direct Video Downloads:** Select multiple videos and download them straight to your local `Downloads` folder using a robust FastAPI + `yt-dlp` backend pipeline.
-- **Anti-Bot Evasion:** Backend utilizes Node.js injection and optimized `yt-dlp` arguments to bypass YouTube bot detection seamlessly.
+## 🚀 One-Command Install (Mac, Linux, Windows)
+
+You can run the entire Curator AI app (Frontend + Python Backend + Media Downloader) locally with one single command. 
+
+**Prerequisite:** Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/your-username/curator-ai.git
+cd curator-ai
+```
+
+### 2. Add your Groq API Key
+Create a `.env` file in the root directory:
+```bash
+echo "GROQ_API_KEY=your_api_key_here" > .env
+```
+
+### 3. Launch the App!
+Run this exact command in your terminal:
+```bash
+docker compose up -d --build
+```
+
+That's it! 
+- 🌐 **Open on your PC:** Go to `http://localhost:8080`
+- 📱 **Open on your Phone (PWA):** Ensure your phone is on the same WiFi as your computer. Find your computer's local IP address (e.g., `192.168.1.50`) and open `http://192.168.1.50:8080` in Safari/Chrome. You can click "Add to Home Screen" to install it natively!
 
 ---
 
-## 🛠️ Tech Stack
-- **Frontend:** React, Vite, Tailwind CSS v4, Framer Motion, React Router.
-- **Backend:** Python, FastAPI, Uvicorn, `yt-dlp`.
-- **AI Integration:** Groq API (`openai/gpt-oss-120b`).
-- **Process Management:** PM2.
-
----
-
-## ⚙️ Setup & Installation
-
-### Prerequisites
-Make sure you have the following installed on your system:
-- **Python 3.10+**
-- **Node.js & npm** (Required for Vite and `yt-dlp` JS evaluation)
-- **PM2** (Install globally via `npm install -g pm2`)
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/Jaspreet-Bhatia-AI/CuratorAI.git
-cd CuratorAI
-```
-*(Note: Replace the URL with your actual GitHub repository URL if renamed).*
-
-### 2. Backend Setup
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install fastapi uvicorn yt-dlp groq python-dotenv
-```
-Create a `.env` file in the `backend/` directory and add your Groq API Key:
-```env
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-### 3. Frontend Setup
-```bash
-cd ../frontend
-npm install
-```
-
----
-
-## 🚀 Running the App via PM2 (Localhost / Network)
-
-To run both the frontend and backend continuously in the background, we use PM2. 
-
-### Start the FastAPI Backend
-Because we are using a Python virtual environment, we must explicitly tell PM2 to use the `venv` interpreter to avoid syntax crashes.
-```bash
-cd backend
-pm2 start venv/bin/uvicorn --name "yt-backend" --interpreter venv/bin/python -- main:app --host 0.0.0.0 --port 8000
-```
-
-### Start the React Frontend
-Open a new terminal or navigate back to the frontend directory:
-```bash
-cd ../frontend
-pm2 start npm --name "yt-frontend" -- run dev
-```
-
-### Useful PM2 Commands
-- **Check Status:** `pm2 status`
-- **View Logs:** `pm2 logs` (or `pm2 logs yt-backend` / `pm2 logs yt-frontend`)
-- **Stop App:** `pm2 stop all`
-- **Restart App:** `pm2 restart all`
-
----
-
-## 🌐 Accessing the App
-Once both processes are running, open your web browser and navigate to:
-**http://localhost:5173**
-
-Because the frontend runs with `--host` (configured in `package.json`), you can also access the application from your mobile phone or another computer on the same Wi-Fi network by replacing `localhost` with your computer's local IP address (e.g., `http://192.168.1.X:5173`).
+## Architecture
+- **Frontend:** React + Vite (served via Nginx)
+- **Backend:** Python FastAPI (using Groq LLaMA-3)
+- **Engine:** `yt-dlp` threaded media downloader

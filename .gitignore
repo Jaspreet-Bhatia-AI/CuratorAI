@@ -1,32 +1,35 @@
-# Environments
-venv/
-env/
+# Environment variables
 .env
+.env.*
 
-# Byte-compiled / optimized / DLL files
+# Node
+node_modules/
+dist/
+build/
+
+# Python
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Downloaded Media Files (Ignore downloaded videos and audio)
-*.mp4
+# Media / Temp files
+backend/temp_downloads/
+backend/downloads/
+*.zip
 *.mp3
-*.m4a
-*.webm
+*.mp4
 *.part
 *.ytdl
 
-# Streamlit
-.streamlit/
-
-# OS generated files
+# IDEs and OS
+.vscode/
+.idea/
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-.gitignore
-# Private Commands
-COMMANDS_CHEATSHEET.txt
