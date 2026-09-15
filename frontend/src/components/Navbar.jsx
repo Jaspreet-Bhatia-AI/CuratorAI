@@ -1,94 +1,75 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 
 export default function Navbar() {
-  const location = useLocation();
-  const { user, credits, setIsLoginModalOpen, logout, setIsSettingsModalOpen, isDarkMode, toggleTheme } = useAuth();
+  const { user, isDarkMode, toggleTheme } = useAuth();
+  const { handleSearch, isLoading } = useAppContext();
+  const [query, setQuery] = useState('');
 
-  const links = [
-    { name: 'Home', path: '/' },
-    { name: 'Library', path: '/library' },
-    { name: 'About', path: '/about' }
-  ];
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if(query.trim()) handleSearch(query);
+  };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-google-dark/80 backdrop-blur-xl border-b border-outline/20 dark:border-white/10">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary to-blue-500 shadow-[0_0_15px_rgba(139,92,246,0.5)] group-hover:scale-110 transition-transform"></div>
-          <span className="font-semibold text-xl tracking-tight text-on-surface dark:text-white flex items-center">Curator <span className="text-sm font-normal text-gray-400 ml-3 border-l border-white/20 pl-3">by <span className="font-bold text-google-purple tracking-wide">JB AI</span></span></span>
-        </Link>
+    <header className="fixed top-0 left-0 right-0 z-40 bg-surface-container-lowest/80 dark:bg-google-dark/80 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] dark:border-b dark:border-white/10">
+      <div className="h-16 w-full px-4 md:px-8 flex items-center justify-between gap-4">
         
-        <div className="flex items-center gap-8">
-          <div className="flex gap-6">
-            {links.map(link => {
-              const isActive = location.pathname === link.path;
-              return (
-                <Link 
-                  key={link.name} 
-                  to={link.path}
-                  id={link.name === "Library" ? "tour-library" : undefined}
-                  className="relative px-3 py-2 text-sm font-medium transition-colors hover:text-on-surface dark:text-white"
-                >
-                  <span className={`relative z-10 ${isActive ? 'text-on-surface dark:text-white' : 'text-gray-400'}`}>
-                    {link.name}
-                  </span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="nav-pill"
-                      className="absolute inset-0 bg-black/10 dark:bg-surface-container-lowest/10 rounded-lg"
-                      transition={{ type: "spring", duration: 0.5 }}
-                    />
-                  )}
-                </Link>
-              );
-            })}
+        {/* Logo Area */}
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
+            C
           </div>
+          <span className="font-headline-sm text-headline-sm text-on-surface dark:text-white tracking-tight hidden sm:block">Curator</span>
+          <span className="bg-secondary-fixed text-on-secondary-fixed-variant dark:bg-google-purple/20 dark:text-google-purple font-label-sm text-label-sm px-2.5 py-0.5 rounded-full hidden lg:block">AI Studio</span>
+        </Link>
 
-          <div className="border-l border-outline/20 dark:border-white/10 pl-8 flex items-center gap-4">
+        {/* Center Search Bar (from Stitch HTML) */}
+        <div className="flex-1 max-w-xl mx-auto hidden md:flex items-center" id="tour-search">
+          <form onSubmit={onSubmit} className="relative w-full flex items-center bg-surface-container-low dark:bg-surface-container-lowest/10 rounded-xl px-3.5 py-1.5 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <span className="material-symbols-outlined text-outline text-[18px] mr-2.5 select-none">search</span>
+            <input 
+              className="w-full bg-transparent font-body-sm text-body-sm text-on-surface dark:text-white placeholder:text-outline focus:outline-none" 
+              placeholder="Search curated streams, video lessons, audio stems..." 
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              disabled={isLoading}
+            />
+            <kbd className="ml-2 hidden lg:inline-flex items-center px-1.5 py-0.5 rounded bg-surface-container-lowest dark:bg-black/50 text-outline font-label-sm text-label-sm shadow-[0_1px_4px_rgba(0,0,0,0.04)] select-none">⌘K</kbd>
+          </form>
+        </div>
 
+        {/* Right Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={toggleTheme} className="p-2 rounded-xl text-on-surface-variant dark:text-gray-400 hover:bg-surface-container-high dark:hover:bg-white/10 transition-colors" type="button">
+            <span className="material-symbols-outlined text-[20px]">{isDarkMode ? 'light_mode' : 'dark_mode'}</span>
+          </button>
           
-          <button onClick={toggleTheme} className="text-outline dark:text-slate-400 hover:text-on-surface dark:hover:text-white transition-colors mr-2">
-            {isDarkMode ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-            )}
+          <button className="hidden sm:inline-flex items-center gap-1.5 bg-primary text-on-primary font-label-md text-label-md px-3.5 py-2 rounded-full shadow-[0_4px_14px_0_rgba(70,72,212,0.25)] hover:bg-primary-container transition-all" type="button">
+            <span className="material-symbols-outlined text-[16px]">add</span>
+            <span>New Prompt</span>
           </button>
-          <button onClick={() => setIsSettingsModalOpen(true)} className="text-outline dark:text-slate-400 hover:text-on-surface dark:text-white transition-colors mr-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          
+          <button className="relative p-2 rounded-xl text-on-surface-variant dark:text-gray-400 hover:bg-surface-container-high dark:hover:bg-white/10 transition-colors hidden sm:block" type="button">
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-secondary ring-2 ring-surface-container-lowest dark:ring-google-dark"></span>
           </button>
-
+          
+          <div className="relative ml-1 flex items-center pl-2">
             {user ? (
-              <>
-                <div className="flex flex-col items-end mr-2">
-                  <span className="text-sm font-medium text-on-surface dark:text-white">{user.name}</span>
-                  <span className="text-xs text-google-purple flex items-center gap-1 font-mono">
-                    <div className="w-2 h-2 rounded-full bg-google-purple shadow-[0_0_8px_rgba(139,92,246,0.8)]"></div>
-                    {credits} Credits
-                  </span>
-                </div>
-                <div className="relative group cursor-pointer">
-                  <img src={user.avatar} alt="Profile" className="w-10 h-10 rounded-full border border-white/20 hover:border-google-purple transition-colors" />
-                  <div className="absolute right-0 mt-2 w-32 bg-surface-container-lowest dark:bg-slate-900 border border-surface-container-highest dark:border-slate-700 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-                    <button onClick={logout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-surface-container-low dark:bg-slate-800 rounded-lg">Sign out</button>
-                  </div>
-                </div>
-              </>
+              <img alt="Profile" className="w-8 h-8 rounded-full object-cover ring-1 ring-surface-container-high dark:ring-white/10" src={user.photoURL} />
             ) : (
-              <button 
-                id="tour-login"
-                onClick={() => setIsLoginModalOpen(true)}
-                className="bg-black/10 dark:bg-surface-container-lowest/10 hover:bg-black/20 dark:bg-surface-container-lowest/20 border border-white/20 text-on-surface dark:text-white text-sm font-semibold py-2 px-6 rounded-full transition-all hover:scale-105 active:scale-95"
-              >
-                Log In
-              </button>
+              <div className="w-8 h-8 rounded-full bg-surface-container-high dark:bg-white/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[18px]">person</span>
+              </div>
             )}
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-tertiary-container rounded-full ring-2 ring-surface-container-lowest dark:ring-google-dark"></span>
           </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 }

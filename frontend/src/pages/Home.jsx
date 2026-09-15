@@ -1,169 +1,95 @@
-import React, { useState, useContext } from 'react';
-import toast from 'react-hot-toast';
-import { AppContext } from '../context/AppContext';
-import { motion, AnimatePresence } from 'framer-motion';
-import Hero from '../components/Hero';
-import Roadmap from '../components/Roadmap';
+import React from 'react';
 import MediaGrid from '../components/MediaGrid';
+import { useAppContext } from '../context/AppContext';
 
 export default function Home() {
-  const { 
-    hasSearched, setHasSearched, 
-    roadmap, setRoadmap, 
-    videos, setVideos, 
-    selectedTopic, setSelectedTopic 
-  } = useContext(AppContext);
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [loadingStatus, setLoadingStatus] = useState('');
-
-  const handleSearch = async (query) => {
-    setHasSearched(true);
-    setIsLoading(true);
-    setProgress(5);
-    setLoadingStatus("Connecting to AI Core...");
-    setRoadmap(null);
-    setVideos([]);
-    setSelectedTopic(null);
-
-    // Simulate progress for the Groq AI phase (up to 40%)
-    const aiInterval = setInterval(() => {
-      setProgress(p => {
-        if (p < 40) return p + Math.floor(Math.random() * 5);
-        return p;
-      });
-      setLoadingStatus("Architecting learning curriculum...");
-    }, 600);
-
-    try {
-      const res = await fetch("/api/generate-roadmap", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query })
-      });
-      
-      clearInterval(aiInterval);
-      const data = await res.json();
-      
-      if(data.success && data.data) {
-        setProgress(45);
-        setRoadmap(data.data);
-        
-        const curriculum = data.data.curriculum || [];
-        const totalVideos = curriculum.length;
-        let completedVideos = 0;
-        
-        setLoadingStatus(`Finding perfect video matches (0/${totalVideos})...`);
-        
-        if (totalVideos === 0) {
-          setProgress(100);
-          setIsLoading(false);
-          return;
-        }
-
-        // Fetch videos in parallel, updating progress as each one finishes
-        const promises = curriculum.map(async (item) => {
-          try {
-            if (item.url) {
-                // BYPASS SEARCH: The backend pre-resolved this video (Playlist mode)
-                setVideos(prev => [...prev, { 
-                  title: item.title,
-                  url: item.url,
-                  thumbnail: item.thumbnail,
-                  uploader: item.uploader,
-                  rationale: item.rationale,
-                  topics: item.topics_covered || []
-                }]);
-            } else {
-                const r = await fetch("/api/search", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ search_query: item.search_query, type: data.data.type || "education", original_query: query })
-                });
-                const vData = await r.json();
-                
-                if(vData.success) {
-                  setVideos(prev => [...prev, { 
-                    ...vData.data, 
-                    rationale: item.rationale,
-                    topics: item.topics_covered 
-                  }]);
-                }
-            }
-          } catch (e) {
-            console.error("Search failed for:", item.search_query, e);
-          } finally {
-            completedVideos++;
-            const currentProgress = Math.floor(45 + (completedVideos / totalVideos) * 55);
-            setProgress(currentProgress > 100 ? 100 : currentProgress);
-            setLoadingStatus(`Curating videos (${completedVideos}/${totalVideos})...`);
-          }
-        });
-
-        await Promise.all(promises);
-        
-        setProgress(100);
-        setLoadingStatus("Curation Complete!");
-        toast.success("Roadmap & Videos generated successfully!");
-        
-        // Brief delay so the user can see 100% before it hides
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 800);
-        
-      } else {
-        clearInterval(aiInterval);
-        setIsLoading(false);
-      }
-    } catch (err) {
-      clearInterval(aiInterval);
-      console.error("Backend connection failed:", err);
-      toast.error("Failed to connect to backend. Is FastAPI running?");
-      setIsLoading(false);
-    }
-  };
+  const { roadmap, curriculum, isLoading, selectedTopic } = useAppContext();
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="max-w-7xl mx-auto px-6 py-32 space-y-16"
-    >
-      <Hero 
-        onSearch={handleSearch} 
-        hasSearched={hasSearched} 
-        isLoading={isLoading} 
-        progress={progress}
-        loadingStatus={loadingStatus}
-      />
+    <div className="flex flex-col w-full h-full pb-20">
       
-      {hasSearched && (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, type: "spring" }}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
-        >
-          <div className="lg:col-span-1">
-            <Roadmap 
-              roadmap={roadmap} 
-              isLoading={isLoading} 
-              selectedTopic={selectedTopic}
-              onSelectTopic={setSelectedTopic}
-            />
+      {/* Breadcrumb & Top Context */}
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <nav aria-label="Breadcrumbs" className="flex items-center gap-2 text-on-surface-variant dark:text-gray-400 font-label-md text-label-md">
+          <span className="flex items-center gap-1">
+            <span className="material-symbols-outlined text-[16px]">school</span>
+            <span>Curriculums</span>
+          </span>
+          <span className="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
+          <span>{roadmap?.title || "Welcome"}</span>
+          <span className="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
+          <span className="text-primary dark:text-google-purple font-semibold px-2 py-0.5 rounded-md bg-surface-container dark:bg-google-purple/10">
+            {selectedTopic || "Overview"}
+          </span>
+        </nav>
+        
+        {isLoading && (
+          <div className="flex items-center gap-2 bg-surface-container-lowest dark:bg-white/5 px-3 py-1.5 rounded-full shadow-sm border border-outline-variant dark:border-white/10">
+            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant dark:text-gray-300">Live Latent Compute Engine: <strong className="text-on-surface dark:text-white">Synthesizing...</strong></span>
           </div>
-          <div className="lg:col-span-2">
-            <MediaGrid 
-              roadmap={roadmap}
-              videos={videos} 
-              isLoading={isLoading} 
-              selectedTopic={selectedTopic}
-            />
+        )}
+      </div>
+
+      {/* Chapter Headline & Meta Synthesis Banner */}
+      <div className="relative overflow-hidden bg-surface-container-lowest dark:bg-google-surface/60 rounded-2xl shadow-sm border border-surface-container-highest dark:border-white/10 p-6 md:p-8 mb-8">
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-gradient-to-br from-primary/10 via-secondary/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 relative z-10">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container dark:bg-google-purple/20 mb-3">
+              <span className="material-symbols-outlined text-secondary dark:text-google-purple text-[16px]">auto_awesome</span>
+              <span className="font-label-sm text-label-sm text-secondary dark:text-google-purple uppercase tracking-wider">
+                {roadmap ? "Neural Synthesis Complete" : "Ready to Generate"}
+              </span>
+            </div>
+            <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight mb-2">
+              {selectedTopic || "Search above to generate a curriculum"}
+            </h1>
+            <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-gray-400 max-w-2xl leading-relaxed">
+              {roadmap ? "Explore curated AI video generations, motion vector analysis, and procedural tracks." : "Type a topic like 'Latent Diffusion Models' or '90s Pop' in the search bar to start your journey."}
+            </p>
           </div>
-        </motion.div>
-      )}
-    </motion.div>
+          
+          {/* Chapter Quick Stats Ring */}
+          {roadmap && (
+            <div className="flex items-center gap-4 bg-surface-container-low/70 dark:bg-black/30 backdrop-blur-sm p-4 rounded-xl shrink-0 border border-surface-container-highest dark:border-white/5">
+              <div className="relative w-12 h-12 flex items-center justify-center">
+                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                  <circle className="text-surface-container-high dark:text-white/10" cx="24" cy="24" fill="none" r="20" stroke="currentColor" strokeWidth="4"></circle>
+                  <circle className="text-primary dark:text-google-purple" cx="24" cy="24" fill="none" r="20" stroke="currentColor" strokeDasharray="125.6" strokeDashoffset="35.1" strokeLinecap="round" strokeWidth="4"></circle>
+                </svg>
+                <span className="absolute font-label-sm text-label-sm text-on-surface dark:text-white font-bold">72%</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-label-md text-label-md text-on-surface dark:text-gray-200">{curriculum.length} Curated Seeds</span>
+                <span className="font-body-sm text-body-sm text-outline dark:text-gray-500">ProRes & Raw Tensors</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Action & Filter Bar */}
+        {roadmap && (
+          <div className="flex flex-wrap items-center justify-between gap-4 mt-8 pt-4 border-t border-surface-container-highest dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-2">
+              <button className="px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-on-surface text-surface-container-lowest dark:bg-white dark:text-black shadow-sm transition-all hover:opacity-90">All Generations</button>
+              <button className="px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-surface-container-lowest dark:bg-white/5 text-on-surface-variant dark:text-gray-300 hover:bg-surface-container-high transition-all shadow-sm border border-surface-container-highest dark:border-white/10">4K Upscaled</button>
+              <button className="px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-surface-container-lowest dark:bg-white/5 text-on-surface-variant dark:text-gray-300 hover:bg-surface-container-high transition-all shadow-sm border border-surface-container-highest dark:border-white/10">Interpolated 60fps</button>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button className="inline-flex items-center gap-2 bg-surface-container-lowest dark:bg-white/10 text-on-surface dark:text-white hover:bg-surface-container-high dark:hover:bg-white/20 font-label-md text-label-md px-4 py-2 rounded-xl shadow-sm transition-all border border-surface-container-highest dark:border-transparent">
+                <span className="material-symbols-outlined text-[18px] text-primary dark:text-google-purple">download</span>
+                <span>Batch Download All</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Video Cards Grid */}
+      <MediaGrid items={curriculum} />
+
+    </div>
   );
 }
