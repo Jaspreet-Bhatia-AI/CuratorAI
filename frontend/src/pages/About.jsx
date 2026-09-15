@@ -31,7 +31,7 @@ export default function About() {
             <a 
               href="https://github.com/Jaspreet-Bhatia-AI" 
               target="_blank" rel="noreferrer"
-              className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-full font-medium transition-colors border border-white/5"
+              className="bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:bg-white/20 text-slate-900 dark:text-white px-6 py-3 rounded-full font-medium transition-colors border border-white/5"
             >
               GitHub Profile
             </a>
@@ -65,7 +65,7 @@ export default function About() {
           </ul>
         </div>
 
-        <div className="bg-google-surface/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+        <div className="bg-google-surface/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl p-8 shadow-2xl">
           <h2 className="text-2xl font-semibold mb-6">Get in touch</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -75,7 +75,7 @@ export default function About() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-google-purple transition-colors"
+                className="w-full bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-google-purple transition-colors"
                 placeholder="John Doe"
               />
             </div>
@@ -85,13 +85,13 @@ export default function About() {
                 required
                 value={formData.message}
                 onChange={(e) => setFormData({...formData, message: e.target.value})}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-google-purple transition-colors h-32 resize-none"
+                className="w-full bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-google-purple transition-colors h-32 resize-none"
                 placeholder="Let's build something amazing..."
               ></textarea>
             </div>
             <button 
               type="submit"
-              className="w-full bg-gradient-to-r from-google-purple to-blue-600 hover:from-google-purple/80 hover:to-blue-600/80 text-white font-medium py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(187,170,255,0.3)]"
+              className="w-full bg-gradient-to-r from-google-purple to-blue-600 hover:from-google-purple/80 hover:to-blue-600/80 text-slate-900 dark:text-white font-medium py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(187,170,255,0.3)]"
             >
               Send Message
             </button>

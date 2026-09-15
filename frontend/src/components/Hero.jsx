@@ -46,7 +46,7 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
       >
         <div className="w-full relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-google-purple to-blue-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-          <div className="relative w-full flex items-center bg-google-surface/60 border border-white/10 backdrop-blur-xl p-2 rounded-[2rem]">
+          <div className="relative w-full flex items-center bg-google-surface/60 border border-black/10 dark:border-white/10 backdrop-blur-xl p-2 rounded-[2rem]">
           <a 
             href="https://youtube.com" 
             target="_blank" 
@@ -62,12 +62,12 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
             onChange={(e) => setQuery(e.target.value)}
             disabled={isLoading}
             placeholder={isLoading ? "Curating your media..." : "What do you want to learn or listen to today?"}
-            className="w-full bg-transparent border-none outline-none text-white px-6 py-4 placeholder-gray-500 text-lg disabled:opacity-50 transition-opacity"
+            className="w-full bg-transparent border-none outline-none text-slate-900 dark:text-white px-6 py-4 placeholder-gray-500 text-lg disabled:opacity-50 transition-opacity"
           />
           <button 
             type="submit"
             disabled={isLoading}
-            className={`bg-white/10 hover:bg-white/20 text-white p-4 rounded-full backdrop-blur-md transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:bg-white/20 text-slate-900 dark:text-white p-4 rounded-full backdrop-blur-md transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isLoading ? (
               <svg className="animate-spin h-6 w-6 text-google-purple" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -81,21 +81,21 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
           <button 
             type="button"
             onClick={() => handleSuggestion('study')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-black/10 dark:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-slate-900 dark:text-white"
           >
             <span>📚</span> Complete Python Developer Roadmap
           </button>
           <button 
             type="button"
             onClick={() => handleSuggestion('music')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-black/10 dark:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-slate-900 dark:text-white"
           >
             <span>🎵</span> Top Chill Lofi Beats Mix
           </button>
           <button 
             type="button"
             onClick={() => handleSuggestion('link')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-white font-mono"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-black/10 dark:bg-white/10 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-slate-900 dark:text-white font-mono"
           >
             <span>🔗</span> https://youtube.com/...
           </button>

@@ -21,6 +21,16 @@
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content="Curator by JB AI" />
     <meta property="twitter:description" content="Generate personalized learning roadmaps and instantly download curated YouTube videos using the power of AI." />
+    <script>
+      (function() {
+        var theme = localStorage.getItem('curator_theme');
+        if (theme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

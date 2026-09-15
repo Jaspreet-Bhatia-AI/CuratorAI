@@ -9,6 +9,7 @@ export function AuthProvider({ children }) {
   
   // AI Provider Settings
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [aiConfig, setAiConfig] = useState({
     provider: 'gemini', // 'gemini' or 'groq'
     key: ''
@@ -20,11 +21,32 @@ export function AuthProvider({ children }) {
       setUser(JSON.parse(savedUser));
       setCredits(5);
     }
+        const savedTheme = localStorage.getItem('curator_theme');
+    if (savedTheme === 'light') {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    } else {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
     const savedConfig = localStorage.getItem('curator_ai_config');
     if (savedConfig) {
       setAiConfig(JSON.parse(savedConfig));
     }
   }, []);
+
+    const toggleTheme = () => {
+    setIsDarkMode(prev => {
+      const newMode = !prev;
+      localStorage.setItem('curator_theme', newMode ? 'dark' : 'light');
+      if (newMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return newMode;
+    });
+  };
 
   const saveAiConfig = (config) => {
     setAiConfig(config);
@@ -58,6 +80,7 @@ export function AuthProvider({ children }) {
       user, credits, loginWithGoogle, logout, deductCredit, 
       isLoginModalOpen, setIsLoginModalOpen,
       isSettingsModalOpen, setIsSettingsModalOpen,
+      isDarkMode, toggleTheme,
       aiConfig, saveAiConfig
     }}>
       {children}

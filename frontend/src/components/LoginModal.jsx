@@ -10,13 +10,13 @@ export default function LoginModal() {
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50 dark:bg-slate-950/80 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div 
-          className="bg-slate-900 border border-slate-700/50 p-8 rounded-2xl shadow-2xl max-w-md w-full relative overflow-hidden"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 p-8 rounded-2xl shadow-2xl max-w-md w-full relative overflow-hidden"
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
         >
@@ -26,7 +26,7 @@ export default function LoginModal() {
 
           <button 
             onClick={() => setIsLoginModalOpen(false)}
-            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            className="absolute top-4 right-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-white transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -34,8 +34,8 @@ export default function LoginModal() {
           </button>
 
           <div className="text-center mb-8 relative z-10">
-            <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Welcome Back</h2>
-            <p className="text-slate-400">Log in to track your roadmaps, save your playlists, and get free generation credits.</p>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Welcome Back</h2>
+            <p className="text-slate-500 dark:text-slate-400">Log in to track your roadmaps, save your playlists, and get free generation credits.</p>
           </div>
 
           <div className="space-y-4 relative z-10">
