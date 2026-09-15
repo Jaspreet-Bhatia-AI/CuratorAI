@@ -29,6 +29,7 @@ export default function Navbar() {
                 <Link 
                   key={link.name} 
                   to={link.path}
+                  id={link.name === "Library" ? "tour-library" : undefined}
                   className="relative px-3 py-2 text-sm font-medium transition-colors hover:text-white"
                 >
                   <span className={`relative z-10 ${isActive ? 'text-white' : 'text-gray-400'}`}>
@@ -70,6 +71,7 @@ export default function Navbar() {
               </>
             ) : (
               <button 
+                id="tour-login"
                 onClick={() => setIsLoginModalOpen(true)}
                 className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-semibold py-2 px-6 rounded-full transition-all hover:scale-105 active:scale-95"
               >
