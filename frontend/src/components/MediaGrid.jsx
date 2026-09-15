@@ -47,7 +47,7 @@ const VideoCard3D = ({ video, isSelected, onToggleSelect, progress }) => {
         className={`group relative rounded-xl h-full overflow-hidden cursor-pointer transition-colors duration-300 flex flex-col border ${
           isSelected 
             ? 'bg-green-900/30 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.15)] ring-1 ring-green-500/50' 
-            : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 hover:border-white/30'
+            : 'bg-primary/5 dark:bg-surface-container-lowest/5 border-outline/20 dark:border-white/10 hover:border-white/30'
         }`}
       >
         <div className="absolute top-4 left-4 z-30" style={{ transform: "translateZ(50px)" }}>
@@ -57,7 +57,7 @@ const VideoCard3D = ({ video, isSelected, onToggleSelect, progress }) => {
               : 'bg-black/60 border-2 border-white/30 group-hover:border-white/60'
           }`}>
             {isSelected && (
-              <svg className="w-4 h-4 text-slate-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+              <svg className="w-4 h-4 text-on-surface dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             )}
@@ -77,7 +77,7 @@ const VideoCard3D = ({ video, isSelected, onToggleSelect, progress }) => {
             target="_blank"
             rel="noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="absolute top-3 right-3 z-30 bg-black/60 hover:bg-green-500 text-slate-900 dark:text-white p-2 rounded-full backdrop-blur-md transition-colors"
+            className="absolute top-3 right-3 z-30 bg-black/60 hover:bg-green-500 text-on-surface dark:text-white p-2 rounded-full backdrop-blur-md transition-colors"
             title="Watch on YouTube"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
@@ -132,7 +132,7 @@ const VideoCard3D = ({ video, isSelected, onToggleSelect, progress }) => {
               <div className="flex justify-between text-xs mb-1 text-green-300 font-medium">
                 <span>{progress.label}</span>
               </div>
-              <div className="w-full bg-black/40 rounded-full h-1.5 border border-black/10 dark:border-white/10 overflow-hidden">
+              <div className="w-full bg-black/40 rounded-full h-1.5 border border-outline/20 dark:border-white/10 overflow-hidden">
                 <motion.div 
                   className="bg-green-500 h-1.5 shadow-[0_0_10px_rgba(34,197,94,0.8)]" 
                   initial={{ width: '0%' }}
@@ -147,7 +147,7 @@ const VideoCard3D = ({ video, isSelected, onToggleSelect, progress }) => {
             <div className={`mt-auto p-2 rounded text-xs transition-colors ${
               isSelected 
                 ? 'bg-green-500/20 border border-green-500/30 text-green-200' 
-                : 'bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-400'
+                : 'bg-primary/5 dark:bg-surface-container-lowest/5 border border-outline/20 dark:border-white/10 text-gray-400'
             }`}>
               💡 {video.rationale}
             </div>
@@ -165,11 +165,11 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
 
   if (isLoading && videos.length === 0) {
     return (
-      <div className="bg-google-surface/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6 h-full">
+      <div className="bg-google-surface/60 backdrop-blur-xl border border-outline/20 dark:border-white/10 rounded-2xl p-6 h-full">
         <h2 className="text-2xl font-semibold mb-6">Curating Content...</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[1,2,3,4].map(v => (
-            <div key={v} className="aspect-video bg-black/5 dark:bg-white/5 animate-pulse rounded-xl"></div>
+            <div key={v} className="aspect-video bg-primary/5 dark:bg-surface-container-lowest/5 animate-pulse rounded-xl"></div>
           ))}
         </div>
       </div>
@@ -358,7 +358,7 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
   };
 
   return (
-    <div className="bg-google-surface/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6 h-full flex flex-col">
+    <div className="bg-google-surface/60 backdrop-blur-xl border border-outline/20 dark:border-white/10 rounded-2xl p-6 h-full flex flex-col">
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <div>
@@ -371,7 +371,7 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
                 Filter Active
               </span>
             )}
-            <span className="text-xs bg-black/5 dark:bg-white/5 px-3 py-1 rounded-full text-gray-400 border border-black/10 dark:border-white/10 flex items-center">
+            <span className="text-xs bg-primary/5 dark:bg-surface-container-lowest/5 px-3 py-1 rounded-full text-gray-400 border border-outline/20 dark:border-white/10 flex items-center">
               {filteredVideos.length} Results
             </span>
           </div>
@@ -382,11 +382,11 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
             {/* Custom Select All Checkbox */}
             <div 
               onClick={toggleSelectAll} 
-              className="flex items-center gap-3 text-sm text-gray-300 cursor-pointer px-2 hover:text-slate-900 dark:text-white transition-colors group"
+              className="flex items-center gap-3 text-sm text-gray-300 cursor-pointer px-2 hover:text-on-surface dark:text-white transition-colors group"
             >
               <div className={`w-5 h-5 rounded flex items-center justify-center transition-all duration-300 ${isAllSelected ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-black/50 border border-white/30 group-hover:border-white/60'}`}>
                 {isAllSelected && (
-                  <svg className="w-3.5 h-3.5 text-slate-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg className="w-3.5 h-3.5 text-on-surface dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 )}
@@ -398,7 +398,7 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
             <select
               value={downloadFormat}
               onChange={(e) => setDownloadFormat(e.target.value)}
-              className="bg-black/50 border border-white/20 text-slate-900 dark:text-white text-sm rounded-lg py-2 px-3 focus:outline-none focus:border-green-500 transition-colors cursor-pointer"
+              className="bg-black/50 border border-white/20 text-on-surface dark:text-white text-sm rounded-lg py-2 px-3 focus:outline-none focus:border-green-500 transition-colors cursor-pointer"
             >
               <option value="video_high">Video (1080p+ Slower)</option>
               <option value="video_fast">Video (720p Lightning Fast)</option>
@@ -409,8 +409,8 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
               disabled={selectedUrls.length === 0}
               className={`font-medium py-2 px-4 rounded-lg transition-all text-sm flex items-center gap-2 ${
                 selectedUrls.length > 0 
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-slate-900 dark:text-white shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:shadow-[0_0_25px_rgba(34,197,94,0.6)]' 
-                  : 'bg-black/5 dark:bg-white/5 text-gray-500 opacity-50 cursor-not-allowed border border-black/10 dark:border-white/10'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-on-surface dark:text-white shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:shadow-[0_0_25px_rgba(34,197,94,0.6)]' 
+                  : 'bg-primary/5 dark:bg-surface-container-lowest/5 text-gray-500 opacity-50 cursor-not-allowed border border-outline/20 dark:border-white/10'
               }`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -422,7 +422,7 @@ export default function MediaGrid({ videos, isLoading, selectedTopic, roadmap })
       </div>
       
       {filteredVideos.length === 0 && selectedTopic && (
-        <div className="text-center py-12 text-gray-500 border border-dashed border-black/10 dark:border-white/10 rounded-xl">
+        <div className="text-center py-12 text-gray-500 border border-dashed border-outline/20 dark:border-white/10 rounded-xl">
           <p>No specific videos found targeting this exact step.</p>
           <p className="text-sm mt-2">Try selecting another step or viewing all videos.</p>
         </div>

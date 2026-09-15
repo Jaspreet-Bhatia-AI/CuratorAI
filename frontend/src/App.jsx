@@ -35,7 +35,7 @@ function App() {
         <AppProvider>
       <AuthProvider>
       <BrowserRouter>
-      <div className="min-h-screen bg-slate-50 dark:bg-google-dark text-slate-900 dark:text-gray-200 font-sans flex flex-col selection:bg-google-purple/30 transition-colors duration-300">
+      <div className="min-h-screen bg-surface dark:bg-google-dark text-on-surface dark:text-gray-200 font-sans flex flex-col selection:bg-google-purple/30 transition-colors duration-300">
         <Toaster position="bottom-right" toastOptions={{ style: { background: "#1a1a1a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" } }} />
                 <Navbar />
         <PwaUpdater />

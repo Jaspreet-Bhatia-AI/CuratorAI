@@ -14,12 +14,12 @@ export default function NotFound() {
         initial={{ scale: 0.8, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", bounce: 0.5 }}
-        className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-12 rounded-3xl backdrop-blur-xl max-w-lg w-full shadow-2xl"
+        className="bg-primary/5 dark:bg-surface-container-lowest/5 border border-outline/20 dark:border-white/10 p-12 rounded-3xl backdrop-blur-xl max-w-lg w-full shadow-2xl"
       >
         <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 mb-4">
           404
         </h1>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Lost in the Algorithm</h2>
+        <h2 className="text-2xl font-bold text-on-surface dark:text-white mb-6">Lost in the Algorithm</h2>
         <p className="text-gray-400 mb-8 leading-relaxed">
           The page or video roadmap you are looking for doesn't exist in our neural network. It might have been moved or deleted.
         </p>

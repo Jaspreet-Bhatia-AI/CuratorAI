@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 export default function Roadmap({ roadmap, isLoading, selectedTopic, onSelectTopic }) {
   if (isLoading) {
     return (
-      <div className="bg-google-surface/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6 h-full animate-pulse">
-        <div className="h-6 bg-black/10 dark:bg-white/10 rounded w-1/2 mb-8"></div>
+      <div className="bg-google-surface/60 backdrop-blur-xl border border-outline/20 dark:border-white/10 rounded-2xl p-6 h-full animate-pulse">
+        <div className="h-6 bg-black/10 dark:bg-surface-container-lowest/10 rounded w-1/2 mb-8"></div>
         <div className="space-y-4">
-          <div className="h-16 bg-black/5 dark:bg-white/5 rounded-xl"></div>
-          <div className="h-16 bg-black/5 dark:bg-white/5 rounded-xl"></div>
-          <div className="h-16 bg-black/5 dark:bg-white/5 rounded-xl"></div>
+          <div className="h-16 bg-primary/5 dark:bg-surface-container-lowest/5 rounded-xl"></div>
+          <div className="h-16 bg-primary/5 dark:bg-surface-container-lowest/5 rounded-xl"></div>
+          <div className="h-16 bg-primary/5 dark:bg-surface-container-lowest/5 rounded-xl"></div>
         </div>
       </div>
     );
@@ -20,7 +20,7 @@ export default function Roadmap({ roadmap, isLoading, selectedTopic, onSelectTop
   const isMusic = roadmap.type === 'music' || (roadmap.title && roadmap.title.toLowerCase().includes('playlist'));
 
   return (
-    <div className="bg-google-surface/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6 h-full">
+    <div className="bg-google-surface/60 backdrop-blur-xl border border-outline/20 dark:border-white/10 rounded-2xl p-6 h-full">
       <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-google-purple shadow-[0_0_10px_#bbaaff]"></span>
         {roadmap.title || (isMusic ? "Curated Playlist" : "Learning Roadmap")}
@@ -45,8 +45,8 @@ export default function Roadmap({ roadmap, isLoading, selectedTopic, onSelectTop
                 {isMusic ? <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg> : (index + 1)}
               </div>
               
-              <div className={`flex-1 rounded-xl p-4 transition-all backdrop-blur-md border ${isSelected ? 'bg-google-purple/10 border-google-purple shadow-[0_0_20px_rgba(187,170,255,0.1)]' : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 hover:border-google-purple/50'}`}>
-                <h3 className={`font-medium ${isSelected ? 'text-google-purple' : 'text-slate-900 dark:text-white'}`}>{title}</h3>
+              <div className={`flex-1 rounded-xl p-4 transition-all backdrop-blur-md border ${isSelected ? 'bg-google-purple/10 border-google-purple shadow-[0_0_20px_rgba(187,170,255,0.1)]' : 'bg-primary/5 dark:bg-surface-container-lowest/5 border-outline/20 dark:border-white/10 hover:border-google-purple/50'}`}>
+                <h3 className={`font-medium ${isSelected ? 'text-google-purple' : 'text-on-surface dark:text-white'}`}>{title}</h3>
                 {subtopics.length > 0 && (
                   <ul className="text-sm text-gray-400 mt-2 space-y-1 ml-4 list-disc marker:text-google-purple/50">
                     {subtopics.map((sub, i) => (
