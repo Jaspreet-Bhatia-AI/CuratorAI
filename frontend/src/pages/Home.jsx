@@ -1,95 +1,125 @@
-import React from 'react';
-import MediaGrid from '../components/MediaGrid';
+import React, { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 
 export default function Home() {
-  const { roadmap, curriculum, isLoading, selectedTopic } = useAppContext();
+  const { searchQuery, setSearchQuery } = useAppContext();
+  const navigate = useNavigate();
+
+  const handleGenerate = () => {
+    if (searchQuery.trim()) {
+      navigate('/studio');
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleGenerate();
+    }
+  };
+
+  const selectPrompt = (promptText) => {
+    setSearchQuery(promptText);
+    navigate('/studio');
+  };
 
   return (
-    <div className="flex flex-col w-full h-full pb-20">
+    <div className="flex flex-col w-full min-h-[calc(100vh-4rem)] items-center justify-center relative overflow-hidden px-4 sm:px-6 lg:px-12 select-none">
+      {/* Glowing Ambient Background Orbs */}
+      <div className="absolute -top-32 -left-20 w-96 h-96 rounded-full bg-gradient-to-tr from-primary/30 to-secondary/25 blur-3xl pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '8s' }}></div>
+      <div className="absolute top-1/3 -right-24 w-[30rem] h-[30rem] rounded-full bg-gradient-to-bl from-secondary-container/20 to-tertiary/20 blur-3xl pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '12s' }}></div>
+      <div className="absolute -bottom-24 left-1/3 w-[26rem] h-[26rem] rounded-full bg-gradient-to-t from-primary-container/20 to-surface-tint/15 blur-3xl pointer-events-none -z-10"></div>
       
-      {/* Breadcrumb & Top Context */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <nav aria-label="Breadcrumbs" className="flex items-center gap-2 text-on-surface-variant dark:text-gray-400 font-label-md text-label-md">
-          <span className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">school</span>
-            <span>Curriculums</span>
-          </span>
-          <span className="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
-          <span>{roadmap?.title || "Welcome"}</span>
-          <span className="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
-          <span className="text-primary dark:text-google-purple font-semibold px-2 py-0.5 rounded-md bg-surface-container dark:bg-google-purple/10">
-            {selectedTopic || "Overview"}
-          </span>
-        </nav>
-        
-        {isLoading && (
-          <div className="flex items-center gap-2 bg-surface-container-lowest dark:bg-white/5 px-3 py-1.5 rounded-full shadow-sm border border-outline-variant dark:border-white/10">
-            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant dark:text-gray-300">Live Latent Compute Engine: <strong className="text-on-surface dark:text-white">Synthesizing...</strong></span>
+      {/* Central Focus Stage */}
+      <div className="w-full max-w-3xl flex flex-col items-center justify-center my-auto py-10 relative z-10">
+        {/* Visual Tagline */}
+        <div className="flex flex-col items-center text-center space-y-1 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-primary/10 text-primary mb-1">
+            <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+            <span className="font-label-md text-label-md">Infinite Knowledge & Sensory Synthesis</span>
           </div>
-        )}
-      </div>
-
-      {/* Chapter Headline & Meta Synthesis Banner */}
-      <div className="relative overflow-hidden bg-surface-container-lowest dark:bg-google-surface/60 rounded-2xl shadow-sm border border-surface-container-highest dark:border-white/10 p-6 md:p-8 mb-8">
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-gradient-to-br from-primary/10 via-secondary/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 relative z-10">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container dark:bg-google-purple/20 mb-3">
-              <span className="material-symbols-outlined text-secondary dark:text-google-purple text-[16px]">auto_awesome</span>
-              <span className="font-label-sm text-label-sm text-secondary dark:text-google-purple uppercase tracking-wider">
-                {roadmap ? "Neural Synthesis Complete" : "Ready to Generate"}
-              </span>
-            </div>
-            <h1 className="font-headline-lg text-headline-lg text-on-surface dark:text-white tracking-tight mb-2">
-              {selectedTopic || "Search above to generate a curriculum"}
-            </h1>
-            <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-gray-400 max-w-2xl leading-relaxed">
-              {roadmap ? "Explore curated AI video generations, motion vector analysis, and procedural tracks." : "Type a topic like 'Latent Diffusion Models' or '90s Pop' in the search bar to start your journey."}
-            </p>
-          </div>
-          
-          {/* Chapter Quick Stats Ring */}
-          {roadmap && (
-            <div className="flex items-center gap-4 bg-surface-container-low/70 dark:bg-black/30 backdrop-blur-sm p-4 rounded-xl shrink-0 border border-surface-container-highest dark:border-white/5">
-              <div className="relative w-12 h-12 flex items-center justify-center">
-                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                  <circle className="text-surface-container-high dark:text-white/10" cx="24" cy="24" fill="none" r="20" stroke="currentColor" strokeWidth="4"></circle>
-                  <circle className="text-primary dark:text-google-purple" cx="24" cy="24" fill="none" r="20" stroke="currentColor" strokeDasharray="125.6" strokeDashoffset="35.1" strokeLinecap="round" strokeWidth="4"></circle>
-                </svg>
-                <span className="absolute font-label-sm text-label-sm text-on-surface dark:text-white font-bold">72%</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-label-md text-label-md text-on-surface dark:text-gray-200">{curriculum.length} Curated Seeds</span>
-                <span className="font-body-sm text-body-sm text-outline dark:text-gray-500">ProRes & Raw Tensors</span>
-              </div>
-            </div>
-          )}
+          <h1 className="font-display-lg text-display-lg sm:text-[56px] text-on-surface tracking-tight leading-none">
+            Focus your <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-tertiary">intellect.</span>
+          </h1>
+          <p className="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto pt-1">
+            Synthesize deep video curricula, algorithmic soundscapes, and cinematic visual feeds in one stroke.
+          </p>
         </div>
-
-        {/* Action & Filter Bar */}
-        {roadmap && (
-          <div className="flex flex-wrap items-center justify-between gap-4 mt-8 pt-4 border-t border-surface-container-highest dark:border-white/10">
-            <div className="flex flex-wrap items-center gap-2">
-              <button className="px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-on-surface text-surface-container-lowest dark:bg-white dark:text-black shadow-sm transition-all hover:opacity-90">All Generations</button>
-              <button className="px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-surface-container-lowest dark:bg-white/5 text-on-surface-variant dark:text-gray-300 hover:bg-surface-container-high transition-all shadow-sm border border-surface-container-highest dark:border-white/10">4K Upscaled</button>
-              <button className="px-3.5 py-1.5 rounded-full font-label-md text-label-md bg-surface-container-lowest dark:bg-white/5 text-on-surface-variant dark:text-gray-300 hover:bg-surface-container-high transition-all shadow-sm border border-surface-container-highest dark:border-white/10">Interpolated 60fps</button>
+        
+        {/* Massive Glassmorphic Search Bar */}
+        <div className="w-full relative group">
+          <div className="absolute -inset-1 rounded-[1.75rem] bg-gradient-to-r from-primary/30 via-secondary/25 to-tertiary/30 blur-lg opacity-70 group-hover:opacity-100 transition duration-500"></div>
+          <div className="relative w-full rounded-2xl bg-surface-container-lowest/90 backdrop-blur-xl shadow-2xl p-2 sm:p-2.5 flex flex-col sm:flex-row items-center gap-2">
+            <div className="flex items-center flex-1 w-full pl-2">
+              <span className="material-symbols-outlined text-[24px] text-primary mr-2 select-none">explore</span>
+              <input 
+                className="w-full bg-transparent text-on-surface placeholder:text-outline font-body-lg text-body-lg focus:outline-none antialiased" 
+                placeholder="What do you want to learn, listen to, or explore today?" 
+                type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
             </div>
-            
-            <div className="flex items-center gap-3">
-              <button className="inline-flex items-center gap-2 bg-surface-container-lowest dark:bg-white/10 text-on-surface dark:text-white hover:bg-surface-container-high dark:hover:bg-white/20 font-label-md text-label-md px-4 py-2 rounded-xl shadow-sm transition-all border border-surface-container-highest dark:border-transparent">
-                <span className="material-symbols-outlined text-[18px] text-primary dark:text-google-purple">download</span>
-                <span>Batch Download All</span>
+            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 self-stretch sm:self-auto">
+              <kbd className="hidden md:inline-flex items-center gap-0.5 px-2 py-1 rounded-md bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm shadow-sm select-none">
+                <span className="text-[12px]">⌘</span>K
+              </kbd>
+              <button 
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-gradient-to-r from-primary to-secondary text-on-primary font-label-lg text-label-lg shadow-xl shadow-primary/25 px-6 py-3 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer" 
+                type="button"
+                onClick={handleGenerate}
+              >
+                <span>Generate</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
             </div>
           </div>
-        )}
+        </div>
+        
+        {/* Interactive Mode Segmented Toggle / Pills */}
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-1 p-1.5 rounded-2xl bg-surface-container-low/90 backdrop-blur-md shadow-inner max-w-full">
+          <button className="flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer bg-surface-container-lowest text-primary shadow-md shadow-primary/10 font-label-md text-label-md">
+            <span className="text-base">📚</span>
+            <span>Learning</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary ml-1"></span>
+          </button>
+          <button className="flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest/60 font-label-md text-label-md">
+            <span className="text-base">🎵</span>
+            <span>Music</span>
+          </button>
+          <button className="flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest/60 font-label-md text-label-md">
+            <span className="text-base">🍿</span>
+            <span>Entertainment</span>
+          </button>
+          <button className="flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest/60 font-label-md text-label-md">
+            <span className="text-base">✨</span>
+            <span>Everything Else</span>
+          </button>
+        </div>
+        
+        {/* Curated Dynamic Presets */}
+        <div className="mt-8 w-full flex flex-col items-center">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="material-symbols-outlined text-[14px] text-outline">trending_up</span>
+            <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Recommended syntheses</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 w-full">
+            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Latent Diffusion & Video Motion Dynamics')}>
+              <span className="w-2 h-2 rounded-full bg-primary/70 group-hover:bg-primary transition-colors"></span>
+              <span>Latent Diffusion & Video Motion Dynamics</span>
+            </button>
+            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Bioluminescent Chrono-Flora Synth')}>
+              <span className="w-2 h-2 rounded-full bg-tertiary/70 group-hover:bg-tertiary transition-colors"></span>
+              <span>Bioluminescent Chrono-Flora Synth</span>
+            </button>
+            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Lo-Fi Deep Tensor Beats')}>
+              <span className="w-2 h-2 rounded-full bg-secondary/70 group-hover:bg-secondary transition-colors"></span>
+              <span>Lo-Fi Deep Tensor Beats</span>
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* Video Cards Grid */}
-      <MediaGrid items={curriculum} />
-
     </div>
   );
 }

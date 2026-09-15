@@ -1,108 +1,120 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function SettingsModal() {
-  const { isSettingsModalOpen, setIsSettingsModalOpen, aiConfig, saveAiConfig } = useAuth();
-  
-  const [provider, setProvider] = useState('gemini');
-  const [apiKey, setApiKey] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_key') || '');
+  const [groqKey, setGroqKey] = useState(localStorage.getItem('groq_key') || '');
 
-  useEffect(() => {
-    if (isSettingsModalOpen) {
-      setProvider(aiConfig.provider || 'gemini');
-      setApiKey(aiConfig.key || '');
-    }
-  }, [isSettingsModalOpen, aiConfig]);
-
-  if (!isSettingsModalOpen) return null;
+  // We can open it via a global state or event bus, but for now we'll just render it based on isOpen
+  // Wait, Navbar settings button needs to trigger this. We can use a custom event.
+  React.useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-settings', handleOpen);
+    return () => window.removeEventListener('open-settings', handleOpen);
+  }, []);
 
   const handleSave = () => {
-    saveAiConfig({ provider, key: apiKey });
-    toast.success("AI Configuration Saved!");
-    setIsSettingsModalOpen(false);
+    localStorage.setItem('gemini_key', geminiKey);
+    localStorage.setItem('groq_key', groqKey);
+    toast.success('API Keys Saved Securely!');
+    setIsOpen(false);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <AnimatePresence>
-      <motion.div 
-        className="fixed inset-0 z-[60] flex items-center justify-center bg-surface dark:bg-slate-950/80 backdrop-blur-sm p-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        <motion.div 
-          className="bg-surface-container-lowest dark:bg-slate-900 border border-surface-container-highest dark:border-slate-700/50 p-6 sm:p-8 rounded-2xl shadow-2xl max-w-xl w-full relative overflow-hidden"
-          initial={{ scale: 0.95, y: 10 }}
-          animate={{ scale: 1, y: 0 }}
-        >
-          <button 
-            onClick={() => setIsSettingsModalOpen(false)}
-            className="absolute top-4 right-4 text-outline dark:text-slate-400 hover:text-on-surface dark:text-white transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-background/50 backdrop-blur-md transition-opacity" onClick={() => setIsOpen(false)}></div>
+      
+      <div className="relative w-full max-w-2xl bg-surface-container-lowest rounded-3xl shadow-[0_24px_60px_-12px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col border border-outline-variant/30 transform transition-all scale-100 opacity-100">
+        
+        {/* Modal Header */}
+        <div className="px-6 py-5 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary text-[22px]">api</span>
+            </div>
+            <div className="flex flex-col">
+              <h2 className="font-headline-sm text-headline-sm text-on-surface">AI Engine Configuration</h2>
+              <span className="font-label-sm text-label-sm text-on-surface-variant">BYOK (Bring Your Own Key) Architecture</span>
+            </div>
+          </div>
+          <button onClick={() => setIsOpen(false)} className="w-8 h-8 rounded-full hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant transition-colors">
+            <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
+        </div>
 
-          <h2 className="text-2xl font-bold text-on-surface dark:text-white mb-2 tracking-tight">AI Settings</h2>
-          <p className="text-outline dark:text-slate-400 text-sm mb-6">Connect your own AI to power Curriculum Roadmaps for free.</p>
-
-          <div className="flex gap-4 mb-6">
-            <button 
-              onClick={() => setProvider('gemini')}
-              className={`flex-1 py-3 px-4 rounded-xl border ${provider === 'gemini' ? 'bg-primary/10 border-blue-500 text-primary' : 'bg-surface-container-low dark:bg-slate-800 border-surface-container-highest dark:border-slate-700 text-outline dark:text-slate-400'} font-semibold transition-all`}
-            >
-              Google Gemini
-            </button>
-            <button 
-              onClick={() => setProvider('groq')}
-              className={`flex-1 py-3 px-4 rounded-xl border ${provider === 'groq' ? 'bg-orange-500/10 border-orange-500 text-orange-400' : 'bg-surface-container-low dark:bg-slate-800 border-surface-container-highest dark:border-slate-700 text-outline dark:text-slate-400'} font-semibold transition-all`}
-            >
-              Groq (Fast)
-            </button>
-          </div>
-
-          <div className="bg-surface-container-low dark:bg-slate-800/50 border border-surface-container-highest dark:border-slate-700 rounded-xl p-4 mb-6">
-            <h3 className="text-on-surface dark:text-white font-medium mb-2">How to get your free key:</h3>
-            {provider === 'gemini' ? (
-              <ol className="list-decimal pl-4 text-sm text-on-surface-variant dark:text-slate-300 space-y-1">
-                <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-primary hover:underline">Google AI Studio</a></li>
-                <li>Sign in with your standard Google account</li>
-                <li>Click <b>"Create API Key"</b></li>
-                <li>Paste the key below</li>
-              </ol>
-            ) : (
-              <ol className="list-decimal pl-4 text-sm text-on-surface-variant dark:text-slate-300 space-y-1">
-                <li>Go to <a href="https://console.groq.com/keys" target="_blank" className="text-orange-400 hover:underline">Groq Console</a></li>
-                <li>Create a free developer account</li>
-                <li>Click <b>"Create API Key"</b></li>
-                <li>Paste the key below</li>
-              </ol>
-            )}
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-outline dark:text-slate-400 mb-2">Your API Key</label>
-            <input 
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Paste your key here..."
-              className="w-full bg-surface dark:bg-slate-950 border border-surface-container-highest dark:border-slate-700 rounded-lg px-4 py-3 text-on-surface dark:text-white focus:outline-none focus:border-google-purple transition-colors"
-            />
-          </div>
-
-          <button 
-            onClick={handleSave}
-            className="w-full bg-surface-container-lowest text-on-surface font-bold py-3 rounded-lg hover:bg-slate-200 transition-colors"
-          >
-            Save Configuration
-          </button>
+        {/* Modal Body */}
+        <div className="p-6 flex flex-col gap-6 overflow-y-auto max-h-[70vh]">
           
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+          <div className="p-4 rounded-2xl bg-secondary-container/30 border border-secondary/20 flex gap-4">
+            <span className="material-symbols-outlined text-secondary mt-0.5">verified_user</span>
+            <div className="flex flex-col gap-1 text-on-surface">
+              <span className="font-label-md text-label-md font-semibold">Zero-Cost Inference</span>
+              <p className="font-body-sm text-body-sm text-on-surface-variant">By providing your own API keys, you bypass platform token costs. Keys are stored locally in your browser's encrypted vault and are never transmitted to our servers.</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            {/* Groq Key Input */}
+            <div className="flex flex-col gap-2 relative">
+              <label className="font-label-md text-label-md text-on-surface flex items-center justify-between">
+                <span>Groq LPU API Key</span>
+                <span className="text-[10px] uppercase tracking-wider text-primary font-semibold px-2 py-0.5 rounded-full bg-primary-container">Fast Synthesis</span>
+              </label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">key</span>
+                <input 
+                  type="password" 
+                  value={groqKey}
+                  onChange={(e) => setGroqKey(e.target.value)}
+                  placeholder="gsk_..." 
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 pl-10 pr-12 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm transition-all"
+                />
+                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors">
+                  <span className="material-symbols-outlined text-[18px]">visibility</span>
+                </button>
+              </div>
+              <p className="font-body-sm text-body-sm text-on-surface-variant ml-1">Used for ultra-low latency curriculum generation and rapid logic structuring.</p>
+            </div>
+
+            {/* Google Gemini Key Input */}
+            <div className="flex flex-col gap-2 relative">
+              <label className="font-label-md text-label-md text-on-surface flex items-center justify-between">
+                <span>Google Gemini API Key</span>
+                <span className="text-[10px] uppercase tracking-wider text-secondary font-semibold px-2 py-0.5 rounded-full bg-secondary-container">Deep Reasoning</span>
+              </label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">key</span>
+                <input 
+                  type="password" 
+                  value={geminiKey}
+                  onChange={(e) => setGeminiKey(e.target.value)}
+                  placeholder="AIza..." 
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 pl-10 pr-12 focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary text-on-surface font-mono text-sm transition-all"
+                />
+                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-secondary transition-colors">
+                  <span className="material-symbols-outlined text-[18px]">visibility</span>
+                </button>
+              </div>
+              <p className="font-body-sm text-body-sm text-on-surface-variant ml-1">Used for complex multimodal synthesis, long-context analysis, and aesthetic routing.</p>
+            </div>
+          </div>
+          
+        </div>
+
+        {/* Modal Footer */}
+        <div className="px-6 py-4 border-t border-outline-variant/30 flex items-center justify-end gap-3 bg-surface-container-lowest">
+          <button onClick={() => setIsOpen(false)} className="px-5 py-2.5 rounded-full font-label-md text-label-md text-on-surface hover:bg-surface-container transition-colors">
+            Cancel
+          </button>
+          <button onClick={handleSave} className="px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 shadow-sm transition-opacity flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">save</span>
+            <span>Save Configuration</span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,79 +1,73 @@
 import React from 'react';
-import { useAppContext } from '../context/AppContext';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function Sidebar() {
-  const { roadmap, selectedTopic, setSelectedTopic, isLoading } = useAppContext();
+  const location = useLocation();
 
-  // If there's no roadmap yet, we can render a skeleton or placeholder
-  if (isLoading) {
-    return (
-      <aside className="fixed left-0 top-16 bottom-0 w-72 bg-surface-container-low/70 backdrop-blur-xl z-30 hidden md:flex flex-col justify-between p-4 overflow-y-auto border-r border-surface-container-highest">
-         <div className="animate-pulse space-y-4">
-           <div className="h-20 bg-surface-container-lowest rounded-xl"></div>
-           <div className="h-64 bg-surface-container-highest rounded-xl"></div>
-         </div>
-      </aside>
-    );
-  }
-
-  // Calculate some fun fake progress for the Stitch UI
-  const totalSteps = roadmap?.roadmap_overview?.length || 7;
-  const currentStep = roadmap?.roadmap_overview?.findIndex(s => {
-      const title = typeof s === 'string' ? s : s.main_topic;
-      return title === selectedTopic;
-  }) || 0;
-  
-  const percentage = totalSteps > 0 ? Math.round(((currentStep + 1) / totalSteps) * 100) : 0;
+  const getLinkClasses = (path) => {
+    const isActive = location.pathname === path;
+    return isActive 
+      ? 'flex items-center gap-4 px-4 py-3 rounded-xl transition-all bg-primary-container text-on-primary-container font-label-md text-label-md'
+      : 'flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-label-md text-label-md';
+  };
 
   return (
-    <aside className="fixed left-0 top-16 bottom-0 w-72 bg-surface-container-low/70 dark:bg-google-surface/60 dark:border-white/10 backdrop-blur-xl z-30 hidden md:flex flex-col justify-between p-4 overflow-y-auto border-r border-surface-container-highest">
+    <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex-col justify-between pt-4 pb-6">
       <div className="flex flex-col gap-4">
-        {/* Roadmap Progress Widget */}
-        <div className="p-3 bg-surface-container-lowest dark:bg-black/20 rounded-xl shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="font-label-md text-label-md text-on-surface dark:text-gray-200">{roadmap?.title || "Syllabus"}</span>
-            <span className="font-label-sm text-label-sm text-primary font-semibold">{percentage}%</span>
+        {/* Logo Area */}
+        <Link to="/" className="flex items-center gap-3 px-6 h-12">
+          <div className="w-8 h-8 rounded bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+            C
           </div>
-          <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-            <div className="bg-primary h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+          <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight">
+            Curator AI
+          </span>
+        </Link>
+        
+        {/* Active Engine Box */}
+        <div className="px-4">
+          <div className="p-3 rounded-xl bg-surface-container-low flex flex-col gap-1">
+            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active Engine</span>
+            <div className="flex items-center justify-between">
+              <span className="font-label-md text-label-md text-on-surface font-semibold">Synthesis v4.2</span>
+              <span className="w-2 h-2 rounded-full bg-secondary"></span>
+            </div>
           </div>
-          <p className="font-body-sm text-body-sm text-outline mt-1.5">{currentStep + 1} of {totalSteps} Chapters</p>
         </div>
-
-        {/* Chapters List */}
-        <div className="flex flex-col">
-          <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider px-1 mb-2">Curriculum Chapters</span>
-          <nav className="flex flex-col gap-1">
-            {roadmap?.roadmap_overview ? roadmap.roadmap_overview.map((step, index) => {
-              const title = typeof step === 'string' ? step : step.main_topic;
-              const isSelected = selectedTopic === title;
-              const isPast = index <= currentStep;
-              
-              return (
-                <button 
-                  key={index}
-                  onClick={() => setSelectedTopic(title)}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all text-left ${isSelected ? 'bg-surface-container-highest text-on-surface dark:bg-google-purple/20 dark:text-google-purple font-semibold' : 'text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-white/5 hover:text-on-surface'}`}
-                >
-                  <span className="truncate pr-2">{index + 1}. {title}</span>
-                  <span className={`material-symbols-outlined text-[16px] shrink-0 ${isSelected ? 'text-primary' : (isPast ? 'text-secondary' : 'text-outline')}`}>
-                    {isSelected ? 'play_arrow' : (isPast ? 'check_circle' : 'lock')}
-                  </span>
-                </button>
-              );
-            }) : (
-              <div className="text-sm text-outline px-1">Search to generate a syllabus.</div>
-            )}
-          </nav>
-        </div>
+        
+        {/* Navigation List */}
+        <nav className="flex flex-col gap-1 px-3 mt-2">
+          <Link to="/studio" className={getLinkClasses('/studio')}>
+            <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
+            <span>Studio Grid</span>
+          </Link>
+          <Link to="/" className={getLinkClasses('/')}>
+            <span className="material-symbols-outlined text-[20px]">explore</span>
+            <span>Zen Discovery</span>
+          </Link>
+          <Link to="/library" className={getLinkClasses('/library')}>
+            <span className="material-symbols-outlined text-[20px]">video_library</span>
+            <span>Offline Vault</span>
+          </Link>
+          <button onClick={() => window.dispatchEvent(new Event("open-settings"))} className={getLinkClasses('/settings')}>
+            <span className="material-symbols-outlined text-[20px]">key</span>
+            <span>API & Keys</span>
+          </button>
+        </nav>
       </div>
 
-      <div className="p-3 bg-surface-container-highest dark:bg-black/20 rounded-xl flex flex-col gap-1.5 mt-6">
-        <div className="flex items-center justify-between">
-          <span className="font-label-md text-label-md text-on-surface dark:text-gray-300">Curator Pro Tier</span>
-          <span className="bg-secondary text-on-secondary font-label-sm text-label-sm px-2 py-0.5 rounded-full">Active</span>
+      {/* User Status Area */}
+      <div className="px-4 flex flex-col gap-3">
+        <div className="p-4 rounded-2xl bg-surface-container-low flex items-center justify-between shadow-sm cursor-pointer hover:bg-surface-container transition-colors">
+          <div className="flex items-center gap-3">
+            <img alt="Profile" className="w-8 h-8 rounded-full object-cover bg-white" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jaspreet" />
+            <div className="flex flex-col">
+              <span className="font-label-md text-label-md text-on-surface font-semibold">Jaspreet</span>
+              <span className="font-label-sm text-label-[10px] text-on-surface-variant uppercase">Pro Plan</span>
+            </div>
+          </div>
+          <span className="material-symbols-outlined text-on-surface-variant text-[18px]">verified</span>
         </div>
-        <p className="font-body-sm text-body-sm text-on-surface-variant dark:text-gray-500">Unlimited compute & multi-stream stems</p>
       </div>
     </aside>
   );

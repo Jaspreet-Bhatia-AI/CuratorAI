@@ -7,8 +7,8 @@ export default function MediaGrid({ items }) {
 
   const handleDownload = async (item) => {
     try {
-      setDownloadingUrl(item.url);
-      toast.loading(`Downloading ${item.title}...`, { id: item.url });
+      setDownloadingUrl(item.url || item.title);
+      toast.loading(`Downloading ${item.title}...`, { id: item.title });
       
       const res = await fetch('/api/download-audio', {
         method: 'POST',
@@ -20,16 +20,16 @@ export default function MediaGrid({ items }) {
       
       const blob = await res.blob();
       await saveSongToLibrary({
-        id: item.url,
+        id: item.url || item.title,
         title: item.title,
         blob: blob,
         timestamp: new Date()
       });
       
-      toast.success("Saved to offline library!", { id: item.url });
+      toast.success("Saved to offline library!", { id: item.title });
     } catch (error) {
       console.error(error);
-      toast.error("Failed to download audio.", { id: item.url });
+      toast.error("Failed to download audio.", { id: item.title });
     } finally {
       setDownloadingUrl(null);
     }
@@ -38,83 +38,80 @@ export default function MediaGrid({ items }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-12">
       {items.map((item, idx) => {
-        const isDownloading = downloadingUrl === item.url;
+        const isDownloading = downloadingUrl === (item.url || item.title);
         
         return (
-          <article key={idx} className="group bg-surface-container-lowest dark:bg-google-surface/60 border border-surface-container-highest dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden">
-            {/* Thumbnail Wrapper */}
-            <div className="relative w-full aspect-video overflow-hidden bg-surface-container-high dark:bg-black/50">
+          <article key={idx} className="flex flex-col bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+            <div className="relative aspect-video w-full bg-surface-container overflow-hidden group">
               <img 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 alt={item.title} 
                 src={item.thumbnail || `https://picsum.photos/seed/${idx + item.title}/640/360`} 
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-on-background/60 via-transparent to-transparent"></div>
               
-              <div className="absolute top-3 left-3 flex items-center gap-2">
-                <span className="bg-black/60 backdrop-blur-md text-white font-label-sm text-label-sm px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[13px] text-secondary-fixed">hd</span>
-                  4K UHD
+              <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                <span className="px-2 py-0.5 rounded-md bg-surface-container-lowest/90 backdrop-blur-md text-on-surface font-label-sm text-label-sm">
+                  {item.format || '4K UHD'}
                 </span>
+                {idx === 2 && (
+                   <span className="px-2 py-0.5 rounded-md bg-tertiary-container text-on-tertiary-container font-label-sm text-label-sm">Cached</span>
+                )}
               </div>
               
-              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white font-label-sm text-label-sm px-2 py-0.5 rounded-lg flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">schedule</span>
+              <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-on-background/80 text-background font-label-sm text-label-sm backdrop-blur-sm">
                 {item.duration || "03:42"}
               </div>
-              
-              <button aria-label="Play" className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-primary/90 text-on-primary flex items-center justify-center opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all shadow-lg backdrop-blur-sm" type="button">
-                <span className="material-symbols-outlined text-[26px]">play_arrow</span>
-              </button>
             </div>
             
-            {/* Card Body */}
-            <div className="p-4 flex-1 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="font-label-sm text-label-sm text-secondary dark:text-google-purple font-bold tracking-wider uppercase truncate">
-                    SEED #{89400 + idx}
-                  </span>
-                  <span className="flex items-center gap-1 font-label-sm text-label-sm text-tertiary dark:text-gray-400">
-                    <span className="material-symbols-outlined text-[14px]">visibility</span> {item.views || "1.4k"}
-                  </span>
-                </div>
-                <h2 className="font-headline-sm text-headline-sm text-on-surface dark:text-white group-hover:text-primary dark:group-hover:text-google-purple transition-colors mb-1.5 line-clamp-1" title={item.title}>
+            <div className="p-4 flex flex-col flex-1 justify-between gap-4">
+              <div className="flex flex-col gap-1">
+                <h2 className="font-headline-sm text-headline-sm text-on-surface truncate" title={item.title}>
                   {item.title}
                 </h2>
-                <p className="font-body-md text-body-md text-on-surface-variant dark:text-gray-400 line-clamp-2 mb-4 leading-relaxed">
-                  Fine-tuned neural weights modeling high-viscosity iridescent dynamics under directional spotlights.
+                <p className="font-body-sm text-body-sm text-on-surface-variant truncate">
+                  {item.views || "1.4k"} views • Curator Studio
                 </p>
               </div>
               
-              <div>
-                <div className="flex items-center justify-between py-2 border-t border-surface-container dark:border-white/10 text-outline dark:text-gray-500 font-body-sm text-body-sm mb-3">
-                  <span className="flex items-center gap-1 text-on-surface-variant dark:text-gray-300 truncate">
-                    <span className="material-symbols-outlined text-[16px]">person</span> {item.channel || "Curator Bot"}
-                  </span>
-                  <span>3840x2160</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col gap-2 pt-1">
+                {isDownloading ? (
+                  <div className="p-2.5 rounded-xl bg-surface-container-low flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-primary">
+                      <div className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="font-label-sm text-label-sm font-semibold">Downloading...</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-primary to-secondary rounded-full animate-pulse w-3/4"></div>
+                    </div>
+                  </div>
+                ) : idx === 2 ? (
+                  // Offline Ready Mock State
+                  <div className="w-full py-2 px-3 rounded-xl bg-surface-container-low flex items-center justify-between text-on-surface">
+                    <div className="flex items-center gap-1.5 text-tertiary">
+                      <span className="material-symbols-outlined text-[18px]">verified</span>
+                      <span className="font-label-md text-label-md">Offline Ready</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-label-sm text-label-sm text-on-surface-variant">420 MB</span>
+                    </div>
+                  </div>
+                ) : (
                   <button 
                     onClick={() => handleDownload(item)}
-                    disabled={isDownloading}
-                    className="flex-1 bg-secondary text-on-secondary hover:bg-secondary-container dark:bg-google-purple dark:hover:bg-google-purple/80 dark:text-white font-label-md text-label-md px-3.5 py-2 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    className="w-full bg-primary hover:bg-primary/90 text-on-primary font-label-md text-label-md rounded-xl py-2 px-3 flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]"
                   >
-                    {isDownloading ? (
-                      <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined text-[18px]">download</span>
-                        <span>Save <span className="opacity-80 font-normal hidden sm:inline">(MP4)</span></span>
-                      </>
-                    )}
+                    <span className="material-symbols-outlined text-[18px]">download_for_offline</span>
+                    <span>Download to Offline Library</span>
                   </button>
-                  <button aria-label="Bookmark seed" className="p-2 rounded-xl bg-surface-container dark:bg-white/5 hover:bg-surface-container-high dark:hover:bg-white/10 text-on-surface-variant dark:text-gray-400 hover:text-primary transition-colors" type="button">
-                    <span className="material-symbols-outlined text-[20px]">bookmark_border</span>
-                  </button>
-                </div>
+                )}
               </div>
             </div>
           </article>
