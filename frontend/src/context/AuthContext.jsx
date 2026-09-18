@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../utils/supabase';
+import { load } from '@tauri-apps/plugin-store';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [credits, setCredits] = useState(0);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +36,6 @@ export function AuthProvider({ children }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) fetchUserData(session.user.id);
-      else setCredits(0);
     });
 
     // Load theme & AI config from local storage
@@ -58,9 +57,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const fetchUserData = async (userId) => {
-    // Placeholder for fetching user credits/metadata from your 'users' table
-    // For now, give them 5 credits locally if logged in
-    setCredits(5);
+    // Optional: Fetch additional metadata from your 'users' table if needed
   };
 
   const toggleTheme = () => {
@@ -104,7 +101,7 @@ export function AuthProvider({ children }) {
           options: {
             data: {
               full_name: name,
-              avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name || email}`
+              avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name || email}&mouth=smile,twinkle`
             }
           }
         });
@@ -161,18 +158,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const deductCredit = () => {
-    if (credits > 0) {
-      setCredits(prev => prev - 1);
-      return true;
-    }
-    return false;
-  };
-
   return (
     <AuthContext.Provider value={{ 
-      user, credits, loading,
-      loginWithGoogle, loginWithEmail, logout, deductCredit, 
+      user, loading,
+      loginWithGoogle, loginWithEmail, logout, 
       resetPassword, updateProfile,
       isLoginModalOpen, setIsLoginModalOpen,
       isProfileModalOpen, setIsProfileModalOpen,

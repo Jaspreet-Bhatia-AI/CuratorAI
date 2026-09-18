@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getLibrarySongs, removeSongFromLibrary, saveSongToLibrary } from '../utils/db';
+import { getDirectoryHandle, deleteFileFromDisk } from '../utils/fs';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
@@ -48,10 +49,13 @@ export default function Library() {
     }
   };
 
-  const handleRemoveDb = async (id) => {
+  const handleRemoveDb = async (item) => {
     try {
-      await removeSongFromLibrary(id);
-      setDbSongs(prev => prev.filter(s => s.id !== id));
+      if (item.hasLocalFile && item.filename) {
+        await deleteFileFromDisk(item.filename);
+      }
+      await removeSongFromLibrary(item.id);
+      setDbSongs(prev => prev.filter(s => s.id !== item.id));
       toast.success("Removed from device storage");
     } catch (e) {
       toast.error("Failed to remove file");
@@ -97,11 +101,11 @@ export default function Library() {
   const offlineVideo = dbSongs.filter(s => s.type === 'video');
 
   const renderMediaRow = (item, isCloud = false) => {
-    const isCurrentlyPlaying = currentTrack?.id === item.id || currentTrack?.filename === item.filename;
+    const isCurrentlyPlaying = (currentTrack?.id && currentTrack?.id === item.id) || (currentTrack?.filename && currentTrack?.filename === item.filename);
     
     return (
       <tr key={item.id} className={`hover:bg-surface-container-low/50 transition-colors group cursor-pointer ${isCurrentlyPlaying ? 'bg-primary-container/20' : ''}`}>
-        <td className="py-4 px-6" onClick={() => playTrack({ ...item, source: isCloud ? 'server' : 'local' })}>
+        <td className="py-4 px-6" onClick={() => !isCloud && playTrack({ ...item, source: 'local' })}>
           <div className="flex items-center gap-4 min-w-[240px]">
             <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-secondary-container flex items-center justify-center shadow-inner">
               {isCurrentlyPlaying && isPlaying ? (
@@ -133,13 +137,15 @@ export default function Library() {
         </td>
         <td className="py-4 px-6 text-right">
           <div className="flex items-center justify-end gap-2">
-            <button 
-              onClick={(e) => { e.stopPropagation(); isCurrentlyPlaying ? togglePlay() : playTrack({ ...item, source: isCloud ? 'server' : 'local' }); }} 
-              className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-105 transition-transform" 
-              title={isCurrentlyPlaying && isPlaying ? "Pause" : "Play"}
-            >
-              <span className="material-symbols-outlined">{isCurrentlyPlaying && isPlaying ? "pause" : "play_arrow"}</span>
-            </button>
+            {!isCloud && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); isCurrentlyPlaying ? togglePlay() : playTrack({ ...item, source: 'local' }); }} 
+                className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-105 transition-transform" 
+                title={isCurrentlyPlaying && isPlaying ? "Pause" : "Play"}
+              >
+                <span className="material-symbols-outlined">{isCurrentlyPlaying && isPlaying ? "pause" : "play_arrow"}</span>
+              </button>
+            )}
             
             {isCloud ? (
               <button 
@@ -152,7 +158,7 @@ export default function Library() {
               </button>
             ) : (
               <button 
-                onClick={(e) => { e.stopPropagation(); handleRemoveDb(item.id); }}
+                onClick={(e) => { e.stopPropagation(); handleRemoveDb(item); }}
                 className="w-10 h-10 rounded-full hover:bg-error-container text-error flex items-center justify-center transition-colors"
                 title="Remove from Device"
               >
@@ -228,9 +234,23 @@ export default function Library() {
               {activeTab === 'cloud' && 'Central Server Library'}
             </span>
           </div>
-          <span className="px-3 py-1 bg-surface-container rounded-full text-on-surface font-label-sm">
-            {activeList.length} items
-          </span>
+<div className="flex items-center gap-3">
+            <span className="px-3 py-1 bg-surface-container rounded-full text-on-surface font-label-sm">
+              {activeList.length} items
+            </span>
+            {activeTab === 'cloud' && (
+              <button 
+                onClick={() => {
+                  toast.success("Syncing with cloud server...");
+                  fetchCloudMedia();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">sync</span>
+                Update Library
+              </button>
+            )}
+          </div>
         </div>
         
         <div className="overflow-x-auto w-full">

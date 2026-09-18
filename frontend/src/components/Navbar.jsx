@@ -22,7 +22,7 @@ export default function Navbar({ isHome, toggleMobileMenu }) {
               <span className="material-symbols-outlined text-[24px]">menu</span>
             </button>
           )}
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3" onClick={() => { if(setRoadmap) { setRoadmap(null); setSearchQuery(""); } }}>
             <div className="w-8 h-8 rounded bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
               C
             </div>
@@ -48,11 +48,8 @@ export default function Navbar({ isHome, toggleMobileMenu }) {
 
         {/* Center Nav Links (Hidden on small screens) */}
         <nav className="hidden xl:flex items-center gap-1 bg-surface-container-low p-1 rounded-full">
-          <Link to="/" className={`px-4 py-1 font-label-md text-label-md rounded-full transition-all ${location.pathname === '/' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`}>
+          <Link to="/" className={`px-4 py-1 font-label-md text-label-md rounded-full transition-all ${location.pathname === '/' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`} onClick={() => { if(setRoadmap) { setRoadmap(null); setSearchQuery(""); } }}>
             Home
-          </Link>
-          <Link to="/studio" className={`px-4 py-1 font-label-md text-label-md rounded-full transition-all ${location.pathname === '/studio' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`}>
-            Roadmap
           </Link>
           <Link to="/library" className={`px-4 py-1 font-label-md text-label-md rounded-full transition-all ${location.pathname === '/library' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`}>
             Library
@@ -65,7 +62,7 @@ export default function Navbar({ isHome, toggleMobileMenu }) {
             <span className="material-symbols-outlined text-[20px]">{isDarkMode ? 'light_mode' : 'dark_mode'}</span>
           </button>
           <button onClick={() => window.dispatchEvent(new Event("open-settings"))} aria-label="Settings and API Keys" className="hidden sm:flex p-1 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors items-center justify-center">
-            <span className="material-symbols-outlined text-[20px]">settings</span>
+            <span className="material-symbols-outlined text-[20px]">api</span>
           </button>
           <div className="h-5 w-px bg-outline-variant mx-1 hidden sm:block"></div>
           {user ? (
@@ -73,7 +70,7 @@ export default function Navbar({ isHome, toggleMobileMenu }) {
               onClick={() => setIsProfileModalOpen(true)}
               alt="Profile" 
               className="w-8 h-8 rounded-full object-cover shadow-[0_1px_3px_rgba(0,0,0,0.08)] bg-surface-container-high cursor-pointer hover:ring-2 hover:ring-primary transition-all ml-1" 
-              src={user.avatar} 
+              src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} 
             />
           ) : (
             <button 

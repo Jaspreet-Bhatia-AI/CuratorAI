@@ -33,3 +33,5 @@ backend/downloads/
 .idea/
 .DS_Store
 Thumbs.db
+backend/history.db
+backend/cloud_library/

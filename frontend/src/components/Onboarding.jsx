@@ -16,7 +16,7 @@ export default function Onboarding() {
       setSteps([
         {
           target: '#tour-login',
-          content: 'Welcome to Curator AI! 👋 Let’s start by logging in to claim your 5 free AI generation credits.',
+          content: 'Welcome to Curator AI! 👋 Let’s start by logging in to save your learning roadmaps and history.',
           placement: 'bottom',
           disableBeacon: true,
         }

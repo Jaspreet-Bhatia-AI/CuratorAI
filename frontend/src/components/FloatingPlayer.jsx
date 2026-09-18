@@ -1,12 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { loadFileFromDisk } from '../utils/fs';
 
 export default function FloatingPlayer() {
   const { currentTrack, isPlaying, togglePlay } = useAppContext();
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [audioUrl, setAudioUrl] = useState(null);
   const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (!currentTrack) return;
+    
+    let active = true;
+    let url = null;
+
+    const loadTrack = async () => {
+      if (currentTrack.source === 'server') {
+        url = `/api/stream/${encodeURIComponent(currentTrack.filename)}`;
+        if (active) setAudioUrl(url);
+      } else if (currentTrack.source === 'local') {
+        // Fetch from OS disk if we stored it natively!
+        if (currentTrack.hasLocalFile && currentTrack.filename) {
+          const file = await loadFileFromDisk(currentTrack.filename);
+          if (file && active) {
+            url = URL.createObjectURL(file);
+            setAudioUrl(url);
+          }
+        } else if (currentTrack.blob) {
+          // Fallback for legacy items stored purely in IndexedDB
+          url = URL.createObjectURL(currentTrack.blob);
+          if (active) setAudioUrl(url);
+        }
+      }
+    };
+
+    loadTrack();
+    
+    return () => {
+      active = false;
+      if (currentTrack.source === 'local' && url) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -49,10 +87,10 @@ export default function FloatingPlayer() {
 
   return (
     <div className="fixed bottom-6 inset-x-0 mx-auto w-11/12 max-w-5xl z-50">
-      {currentTrack.source === 'server' && (
+      {audioUrl && (
         <audio 
           ref={audioRef} 
-          src={`/api/stream/${encodeURIComponent(currentTrack.filename)}`} 
+          src={audioUrl} 
           onTimeUpdate={handleTimeUpdate}
           onEnded={() => togglePlay()}
         />
@@ -66,11 +104,11 @@ export default function FloatingPlayer() {
             <span className="material-symbols-outlined text-white text-[24px]">graphic_eq</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-label-md text-label-md text-on-surface font-semibold truncate" title={currentTrack.filename}>
-              {currentTrack.filename.replace('.mp3', '')}
+            <span className="font-label-md text-label-md text-on-surface font-semibold truncate" title={currentTrack.title || currentTrack.filename}>
+              {(currentTrack.title || currentTrack.filename || 'Unknown Track').replace('.mp3', '')}
             </span>
             <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
-              {currentTrack.size} • {currentTrack.category}
+              {currentTrack.size ? `${currentTrack.size} • ` : ''} {currentTrack.category || 'Offline Track'}
             </span>
           </div>
           <button className="text-on-surface-variant hover:text-secondary transition-colors shrink-0 ml-auto md:ml-2">

@@ -70,6 +70,7 @@ app.add_middleware(
 
 class RoadmapRequest(BaseModel):
     query: str
+    user_email: str = None
 
 from typing import Optional
 class SearchRequest(BaseModel):
@@ -80,16 +81,33 @@ class SearchRequest(BaseModel):
 @app.post("/api/generate-roadmap")
 @limiter.limit("5/minute")
 async def generate_roadmap(request: Request, req: RoadmapRequest):
+    provider = request.headers.get("X-AI-Provider", "groq")
+    api_key = request.headers.get("X-AI-Key", "")
     try:
-        data = generate_roadmap_json(req.query)
+        data = generate_roadmap_json(req.query, provider, api_key)
+        # Save to DB history
+        import db
+        db.save_user_history(req.user_email, req.query, data)
         return {"success": True, "data": data}
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.get("/api/history")
+async def get_history(email: str = None):
+    if not email:
+        return {"success": True, "data": []}
+    import db
+    data = db.get_user_history(email)
+    return {"success": True, "data": data}
 
 @app.post("/api/search")
 @limiter.limit("30/minute")
 async def search_video(request: Request, req: SearchRequest):
-    result = search_youtube(req.search_query, req.type, req.original_query)
+    result = await asyncio.to_thread(search_youtube, req.search_query, req.type, req.original_query)
     if result:
         return {"success": True, "data": result}
     raise HTTPException(status_code=404, detail="Video not found")
@@ -191,7 +209,7 @@ class DownloadRequest(BaseModel):
 from compressor import compress_media_background
 
 @app.post("/api/download-audio")
-@limiter.limit("15/minute")
+@limiter.limit("50/minute")
 async def download_audio_endpoint(request: Request, req: DownloadRequest, background_tasks: BackgroundTasks, user=Depends(get_current_user)):
     if not is_valid_youtube_url(req.url):
         raise HTTPException(status_code=400, detail="Invalid YouTube URL")
@@ -229,7 +247,7 @@ async def download_audio_endpoint(request: Request, req: DownloadRequest, backgr
 
 
 @app.get("/api/download")
-@limiter.limit("15/minute")
+@limiter.limit("50/minute")
 async def download_endpoint(request: Request, url: str, background_tasks: BackgroundTasks, format: str = "video_high", task_id: str = None):
     if not is_valid_youtube_url(url):
         raise HTTPException(status_code=400, detail="Invalid YouTube URL")
@@ -290,7 +308,7 @@ async def stream_file(request: Request, filename: str):
 if __name__ == "__main__":
 
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
 
 # ==========================================
 # Phase 2: Cloud Library (Offline Ecosystem)

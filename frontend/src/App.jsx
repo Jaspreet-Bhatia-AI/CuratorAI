@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
 import Studio from './pages/Studio';
+import History from './pages/History';
 import Library from './pages/Library';
 import NotFound from './pages/NotFound';
 import { Toaster } from 'react-hot-toast';
@@ -17,6 +18,7 @@ import ProfileModal from './components/ProfileModal';
 import PwaUpdater from './components/PwaUpdater';
 import Onboarding from './components/Onboarding';
 import FloatingPlayer from './components/FloatingPlayer';
+import InteractiveGrid from './components/InteractiveGrid';
 
 function LayoutEngine() {
   const location = useLocation();
@@ -49,9 +51,10 @@ function LayoutEngine() {
       <div className={`${!isHome ? 'md:pl-64' : ''}`}>
         <main className={`w-full pt-16 min-h-screen ${isHome ? '' : 'bg-background'}`}>
           <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Home />} />
-              <Route path="/studio" element={<Studio />} />
+            <Routes location={location} key={location.pathname}>              <Route path="/" element={<Home />} />
+              <Route path="/studio" element={<Navigate to="/" replace />} />
+              <Route path="/roadmap" element={<Navigate to="/" replace />} />
+              
               <Route path="/profile" element={<Profile />} />
               <Route path="/library" element={<Library />} />
               <Route path="*" element={<NotFound />} />
@@ -60,6 +63,7 @@ function LayoutEngine() {
         </main>
       </div>
       
+      <InteractiveGrid />
       <FloatingPlayer />
       
       <SettingsModal />

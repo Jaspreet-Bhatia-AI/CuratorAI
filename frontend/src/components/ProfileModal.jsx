@@ -1,10 +1,13 @@
 import React from 'react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export default function ProfileModal() {
-  const { user, credits, logout, isProfileModalOpen, setIsProfileModalOpen } = useAuth();
+  const { user, logout, isProfileModalOpen, setIsProfileModalOpen } = useAuth();
+  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW();
 
   const handleLogout = () => {
     logout();
@@ -41,29 +44,47 @@ export default function ProfileModal() {
                 transition={{ type: "spring", damping: 15 }}
                 alt="Profile" 
                 className="w-20 h-20 rounded-full object-cover shadow-sm bg-white mb-4 border-4 border-surface-container-lowest" 
-                src={user.avatar} 
+                src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} 
               />
               <h3 className="font-headline-sm text-headline-sm text-on-surface">{user.name}</h3>
               <p className="font-body-sm text-body-sm text-on-surface-variant">{user.email}</p>
-              
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className="mt-4 px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-sm text-label-sm flex items-center gap-2 border border-primary/20 cursor-default"
-              >
-                <span className="material-symbols-outlined text-[16px]">stars</span>
-                <span>{credits} AI Credits Available</span>
-              </motion.div>
             </div>
 
             <div className="p-2 flex flex-col">
-              <Link to="/profile" onClick={() => setIsProfileModalOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface font-label-md text-label-md transition-colors text-left">
+
+              {/* Show Update App button prominently if an update is available */}
+              {needRefresh && (
+                <button 
+                  onClick={() => updateServiceWorker(true)} 
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-primary/10 text-primary font-label-md text-label-md transition-colors text-left hover:bg-primary/20 mb-2 border border-primary/20"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined">system_update</span>
+                    <span className="font-bold">Update Available!</span>
+                  </div>
+                  <span className="bg-primary text-on-primary px-3 py-1 rounded-full text-xs">Download</span>
+                </button>
+              )}
+              
+              <Link to="/profile"  onClick={() => setIsProfileModalOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface font-label-md text-label-md transition-colors text-left">
                 <span className="material-symbols-outlined text-on-surface-variant">person</span>
                 <span>Manage Profile</span>
               </Link>
               
-              <button onClick={() => {}} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface font-label-md text-label-md transition-colors text-left">
+              <Link to="/history" onClick={() => setIsProfileModalOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface font-label-md text-label-md transition-colors text-left">
                 <span className="material-symbols-outlined text-on-surface-variant">history</span>
                 <span>Learning History</span>
+              </Link>
+
+              <button 
+                onClick={() => {
+                  toast.success("Checking for updates...");
+                  setTimeout(() => toast("You are on the latest version.", { icon: '✨' }), 1500);
+                }} 
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface font-label-md text-label-md transition-colors text-left"
+              >
+                <span className="material-symbols-outlined text-on-surface-variant">update</span>
+                <span>Update App</span>
               </button>
 
               <div className="h-px bg-outline-variant/30 my-2 mx-4"></div>

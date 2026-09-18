@@ -2,7 +2,23 @@ import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from "../utils/supabase";
 import { saveSongToLibrary } from '../utils/db';
+import { saveFileToDisk } from '../utils/fs';
 import { motion } from 'framer-motion';
+
+const formatDuration = (secs) => {
+  if (!secs) return "00:00";
+  if (typeof secs === 'string' && secs.includes(':')) return secs;
+  const totalSeconds = parseInt(secs, 10);
+  if (isNaN(totalSeconds)) return "00:00";
+  
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  
+  const pad = (num) => num.toString().padStart(2, '0');
+  if (h > 0) return `${h}:${pad(m)}:${pad(s)}`;
+  return `${m}:${pad(s)}`;
+};
 
 export default function MediaGrid({ items }) {
   const [downloadingUrls, setDownloadingUrls] = useState({});
@@ -51,7 +67,7 @@ export default function MediaGrid({ items }) {
     });
   };
 
-  const handleDownload = async (item) => {
+  const handleDownload = async (item, retryCount = 0) => {
     try {
       const format = formats[item.url] || globalFormat;
       setDownloadingUrls(prev => ({ ...prev, [item.url]: true }));
@@ -74,11 +90,24 @@ export default function MediaGrid({ items }) {
       
       if (!res.ok) throw new Error("Download failed on server");
       
-      const blob = await res.blob();
+      const rawBlob = await res.blob();
+      const blob = new Blob([rawBlob], { type: format.includes('video') ? 'video/mp4' : 'audio/mpeg' });
+      
+      const safeTitle = item.title.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+      const ext = format.includes('video') ? 'mp4' : 'mp3';
+      const filename = `${safeTitle}.${ext}`;
+      
+      // Prompt user to select downloads folder and save directly to OS!
+      await saveFileToDisk(filename, blob);
+
+      // Save metadata to internal library (WITHOUT the massive blob payload to save DB space)
       await saveSongToLibrary({
         id: item.url,
         title: item.title,
-        blob: blob,
+        artist: item.channel,
+        type: format.includes('video') ? 'video' : 'audio',
+        filename: filename,
+        hasLocalFile: true,
         timestamp: new Date()
       });
       
@@ -86,13 +115,23 @@ export default function MediaGrid({ items }) {
     } catch (error) {
       if (error.name === 'AbortError') {
         toast.error("Download cancelled.", { id: item.url });
+        setDownloadingUrls(prev => ({ ...prev, [item.url]: false }));
       } else {
-        console.error(error);
-        toast.error("Failed to download.", { id: item.url });
+        console.error("Download error:", error);
+        if (retryCount < 3) {
+          toast.loading(`Retrying ${item.title} (${retryCount + 1}/3)...`, { id: item.url });
+          // Exponential backoff
+          await new Promise(r => setTimeout(r, 2000 * (retryCount + 1)));
+          return handleDownload(item, retryCount + 1);
+        } else {
+          toast.error("Failed after 3 retries.", { id: item.url });
+          setDownloadingUrls(prev => ({ ...prev, [item.url]: false }));
+        }
       }
     } finally {
-      setDownloadingUrls(prev => ({ ...prev, [item.url]: false }));
-      delete abortControllers.current[item.url];
+      if (retryCount === 0) {
+        delete abortControllers.current[item.url];
+      }
     }
   };
 
@@ -112,8 +151,13 @@ export default function MediaGrid({ items }) {
   const downloadSelected = async () => {
     const itemsToDownload = items.filter(i => selectedItems.has(i.url) && !downloadingUrls[i.url]);
     if (itemsToDownload.length === 0) return toast.error("No valid items selected");
-    for (const item of itemsToDownload) {
-      handleDownload(item); // Run them concurrently
+    
+    toast.success(`Starting batch download of ${itemsToDownload.length} items...`);
+    
+    // Process in batches of 2 to avoid rate limiting from YouTube
+    for (let i = 0; i < itemsToDownload.length; i += 2) {
+      const batch = itemsToDownload.slice(i, i + 2);
+      await Promise.all(batch.map(item => handleDownload(item)));
     }
   };
 
@@ -148,9 +192,9 @@ export default function MediaGrid({ items }) {
               value={globalFormat}
               onChange={handleGlobalFormatChange}
             >
-              <option value="mp3">Audio (MP3)</option>
-              <option value="720p">720p Video</option>
-              <option value="1080p">1080p Video</option>
+              <option value="mp3">Audio Only</option>
+              <option value="720p">720p (Faster Download)</option>
+              <option value="1080p">1080p+ (Better Quality, Slower)</option>
             </select>
           </div>
         </div>
@@ -184,7 +228,13 @@ export default function MediaGrid({ items }) {
           const currentFormat = formats[item.url] || globalFormat;
           
           return (
-            <motion.article variants={itemVariants} key={idx} className={`flex flex-col bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all border-2 ${isSelected ? 'border-primary' : 'border-transparent'}`}>
+            <motion.article 
+              variants={itemVariants} 
+              whileHover={{ y: -8, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              key={idx} 
+              className={`flex flex-col bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/20 transition-all border-2 ${isSelected ? 'border-primary' : 'border-transparent'}`}
+            >
               <div className="relative aspect-video w-full bg-surface-container overflow-hidden group cursor-pointer" onClick={() => toggleSelect(item.url)}>
                 <img 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
@@ -200,7 +250,7 @@ export default function MediaGrid({ items }) {
                 </div>
                 
                 <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-on-background/80 text-background font-label-sm text-label-sm backdrop-blur-sm">
-                  {item.duration || "00:00"}
+                  {formatDuration(item.duration)}
                 </div>
               </div>
               
@@ -209,8 +259,12 @@ export default function MediaGrid({ items }) {
                   <h2 className="font-headline-sm text-headline-sm text-on-surface line-clamp-2" title={item.title}>
                     {item.title}
                   </h2>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant truncate">
-                    {item.views ? item.views.toLocaleString() : "1.4k"} views • {item.channel || "YouTube"}
+                  <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-snug">
+                    <span className="font-semibold">{item.channel || "YouTube"}</span>
+                    <br/>
+                    {item.views ? item.views.toLocaleString() : "0"} views
+                    {item.upload_date && ` • ${item.upload_date}`}
+                    {item.likes && ` • 👍 ${item.likes.toLocaleString()}`}
                   </p>
                   {rationale && (
                     <div className="mt-3 flex gap-2 items-start bg-secondary-container/30 p-2.5 rounded-xl border border-secondary/10">
@@ -252,9 +306,9 @@ export default function MediaGrid({ items }) {
                         value={currentFormat}
                         onChange={(e) => handleFormatChange(item.url, e.target.value)}
                       >
-                        <option value="mp3">Audio (MP3)</option>
-                        <option value="720p">720p Video (Fast)</option>
-                        <option value="1080p">1080p Video (Slow)</option>
+                        <option value="mp3">Audio Only</option>
+                        <option value="720p">720p (Faster Download)</option>
+                        <option value="1080p">1080p+ (Better Quality, Slower)</option>
                       </select>
                       <button 
                         onClick={() => handleDownload(item)}

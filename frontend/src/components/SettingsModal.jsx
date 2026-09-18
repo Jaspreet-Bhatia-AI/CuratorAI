@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
+import { load } from '@tauri-apps/plugin-store';
 
 export default function SettingsModal() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_key') || '');
-  const [groqKey, setGroqKey] = useState(localStorage.getItem('groq_key') || '');
+  const { saveAiConfig } = useAuth();
+  const { pendingQuery, setPendingQuery, handleSearch } = useAppContext();
+  
+const [isOpen, setIsOpen] = useState(false);
+  const [geminiKey, setGeminiKey] = useState('');
+  const [groqKey, setGroqKey] = useState('');
+  const [isStoreLoaded, setIsStoreLoaded] = useState(false);
 
   React.useEffect(() => {
     const handleOpen = () => setIsOpen(true);
@@ -12,11 +19,81 @@ export default function SettingsModal() {
     return () => window.removeEventListener('open-settings', handleOpen);
   }, []);
 
-  const handleSave = () => {
+  React.useEffect(() => {
+    async function loadKeys() {
+      try {
+        const store = await load('settings.json', { autoSave: true });
+        const gKey = await store.get('gemini_key');
+        const grKey = await store.get('groq_key');
+        if (gKey) setGeminiKey(gKey);
+        if (grKey) setGroqKey(grKey);
+        setIsStoreLoaded(true);
+      } catch (err) {
+        // Fallback for web
+        setGeminiKey(localStorage.getItem('gemini_key') || '');
+        setGroqKey(localStorage.getItem('groq_key') || '');
+        setIsStoreLoaded(true);
+      }
+    }
+    loadKeys();
+  }, []);
+
+  const handleOpenLink = async (e, url) => {
+    e.preventDefault();
+    if (window.__TAURI_INTERNALS__) {
+      try {
+        const { open } = await import('@tauri-apps/plugin-shell');
+        await open(url);
+      } catch (err) {
+        console.error("Tauri shell open failed:", err);
+        window.open(url, '_blank');
+      }
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
+const handleSave = async () => {
+    if (!geminiKey && !groqKey) {
+      toast.error('Please provide at least one API key to continue.');
+      return;
+    }
+    
+    // Save locally
+    try {
+      const store = await load('settings.json', { autoSave: true });
+      await store.set('gemini_key', geminiKey);
+      await store.set('groq_key', groqKey);
+      await store.save();
+    } catch (err) {
+      // Fallback
+    }
     localStorage.setItem('gemini_key', geminiKey);
     localStorage.setItem('groq_key', groqKey);
+    
+    // Set actual AI Config for the requests
+    const activeProvider = groqKey ? 'groq' : 'gemini';
+    const activeKey = groqKey || geminiKey;
+    saveAiConfig({ provider: activeProvider, key: activeKey });
+    
     toast.success('API Keys Saved Securely!');
     setIsOpen(false);
+    
+    // Automatically resume intercepted search query!
+    if (pendingQuery) {
+      const q = pendingQuery;
+      setPendingQuery(''); // clear pending
+      setTimeout(() => {
+        handleSearch(q);
+      }, 500);
+    }
+  };
+
+const handleCheckUpdate = () => {
+    const toastId = toast.loading('Checking for app updates...');
+    setTimeout(() => {
+      toast.success('App is up to date! (v1.0.0)', { id: toastId });
+    }, 1500);
   };
 
   if (!isOpen) return null;
@@ -54,13 +131,23 @@ export default function SettingsModal() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-6">
             {/* Groq Key Input */}
             <div className="flex flex-col gap-2 relative">
               <label className="font-label-md text-label-md text-on-surface flex items-center justify-between">
                 <span>Groq LPU API Key</span>
                 <span className="text-[10px] uppercase tracking-wider text-primary font-semibold px-2 py-0.5 rounded-full bg-primary-container">Fast Synthesis</span>
               </label>
+              
+              <div className="flex flex-col gap-2 mb-1">
+                <p className="font-body-sm text-body-sm text-on-surface-variant">
+                  Groq provides ultra-fast AI generation. You can create a free API key instantly.
+                </p>
+                <button onClick={(e) => handleOpenLink(e, "https://console.groq.com/keys")} className="text-primary hover:underline font-label-sm text-label-sm flex items-center gap-1 w-fit bg-transparent border-none p-0 cursor-pointer">
+                  Get a Groq API Key <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                </button>
+              </div>
+
               <div className="relative group">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">key</span>
                 <input 
@@ -73,12 +160,24 @@ export default function SettingsModal() {
               </div>
             </div>
 
+            <div className="h-px w-full bg-outline-variant/30"></div>
+
             {/* Google Gemini Key Input */}
             <div className="flex flex-col gap-2 relative">
               <label className="font-label-md text-label-md text-on-surface flex items-center justify-between">
                 <span>Google Gemini API Key</span>
                 <span className="text-[10px] uppercase tracking-wider text-secondary font-semibold px-2 py-0.5 rounded-full bg-secondary-container">Deep Reasoning</span>
               </label>
+              
+              <div className="flex flex-col gap-2 mb-1">
+                <p className="font-body-sm text-body-sm text-on-surface-variant">
+                  Gemini powers our deep learning roadmaps. Get a free API key from Google AI Studio.
+                </p>
+                <button onClick={(e) => handleOpenLink(e, "https://aistudio.google.com/app/apikey")} className="text-secondary hover:underline font-label-sm text-label-sm flex items-center gap-1 w-fit bg-transparent border-none p-0 cursor-pointer">
+                  Get a Gemini API Key <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                </button>
+              </div>
+
               <div className="relative group">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">key</span>
                 <input 

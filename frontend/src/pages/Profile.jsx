@@ -34,6 +34,17 @@ export default function Profile() {
     }
   };
 
+  const generateNewAvatar = async () => {
+    setLoading(true);
+    try {
+      const randomSeed = Math.random().toString(36).substring(2, 10);
+      const newAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}&mouth=smile,twinkle`;
+      await updateProfile({ avatar_url: newAvatarUrl });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8">
@@ -55,12 +66,16 @@ export default function Profile() {
       <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row gap-8 items-start">
         <div className="flex flex-col items-center gap-4">
           <img 
-            src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} 
+            src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} 
             alt="Avatar" 
             className="w-32 h-32 rounded-full border-4 border-surface-container object-cover bg-surface-container-lowest shadow-sm"
           />
-          <button className="px-4 py-2 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm transition-colors border border-outline-variant/50">
-            Change Avatar
+          <button 
+            onClick={generateNewAvatar}
+            disabled={loading}
+            className="px-4 py-2 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm transition-colors border border-outline-variant/50 disabled:opacity-50"
+          >
+            {loading ? 'Updating...' : 'Randomize Avatar'}
           </button>
         </div>
 

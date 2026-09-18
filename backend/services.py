@@ -1,16 +1,15 @@
 import requests
 from yt_dlp import YoutubeDL as yt
 import os
+import time
+
+ROADMAP_CACHE = {}
+SEARCH_CACHE = {}
 import json
 import re
 import shutil
 from groq import Groq
-from dotenv import load_dotenv
-from ddgs import DDGS
-
-load_dotenv()
-api_key = os.environ.get("GROQ_API_KEY", "dummy_key_to_prevent_crash")
-client = Groq(api_key=api_key)
+# Global client removed for BYOK
 
 node_path = shutil.which("node")
 
@@ -77,7 +76,12 @@ def extract_url_to_roadmap(url: str):
             "curriculum": curriculum
         }
 
-def generate_roadmap_json(user_query: str):
+def generate_roadmap_json(user_query: str, provider: str = "groq", api_key: str = ""):
+    query_lower = user_query.strip().lower()
+    if query_lower in ROADMAP_CACHE:
+        print(f"Returning cached roadmap for: {query_lower}")
+        return ROADMAP_CACHE[query_lower]
+
     if user_query.startswith("http://") or user_query.startswith("https://"):
         return extract_url_to_roadmap(user_query)
 
@@ -88,9 +92,11 @@ IMPORTANT CURATION RULES:
 - NEVER invent content. If provided with REAL YOUTUBE SEARCH RESULTS in your context, you MUST use those exact titles to build your roadmap/playlist. This is crucial for surfacing brand new releases.
 - FOR MUSIC: To ensure the correct official video is fetched, your search_query MUST be perfectly formatted as: "{Exact Track Name} {Artist Name} Official Audio" (e.g., "Dua Amrinder Gill Official Audio").
 - Provide a "rationale" explaining exactly WHY you chose this item/song.
-- IF the user asks for a massive quantity (e.g., 50 or 100 items), the backend will automatically inject a pre-resolved 100-track playlist into the `curriculum` array. 
-- You MUST leave the `curriculum` array EMPTY (e.g. "curriculum": []) if they asked for >15 items, to save processing time.
-- However, you MUST still build the `roadmap_overview` on the left. Extract the individual song names from the YouTube descriptions in the context and list them in the `sub_topics` array so the user can see what they are getting.
+- ITEM COUNT RULES (CRITICAL):
+  1. If the user DOES NOT specify a number (e.g. "punjabi songs"), you MUST return exactly 10 items in BOTH the `sub_topics` array AND the `curriculum` array. Every song MUST have a matching `curriculum` entry!
+  2. If the user's request naturally implies a specific set larger than 10, you may return more than 10 results (up to 15) in the `curriculum` array.
+  3. IF the user explicitly asks for a massive quantity (>15 items), leave the `curriculum` array EMPTY (e.g. "curriculum": []) to save processing time.
+- However, if the array is empty due to Rule 3, you MUST still build the `roadmap_overview` on the left. Extract the individual song names from the YouTube context and list them in the `sub_topics` array so the user sees what they are getting.
 
 Output ONLY raw JSON with this exact schema:
 {
@@ -170,16 +176,77 @@ Output ONLY raw JSON with this exact schema:
         if realtime_context:
             augmented_query = f"User Request: {user_query}\n\n{realtime_context}\n\nBased on the user request and the real-time internet context above, generate the JSON output."
 
-        response = client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": augmented_query}
-            ],
-            model="openai/gpt-oss-120b",
-            max_tokens=8000,
-            response_format={"type": "json_object"}
-        )
-        response_json = json.loads(response.choices[0].message.content)
+
+        if not api_key:
+            raise Exception("No API key provided. Please configure your API key in Settings.")
+
+        if provider == "groq":
+            local_client = Groq(api_key=api_key)
+            model_name = "llama3-8b-8192"
+        elif provider == "gemini":
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            model_name = "gemini-1.5-pro"
+        else:
+            raise Exception("Unsupported AI provider")
+
+
+        if provider == "groq":
+            # DYNAMIC MODEL FETCHING: Because Groq constantly deprecates models,
+            # we will ask their API for the exact list of currently active models you have access to.
+            import requests
+            try:
+                models_resp = requests.get("https://api.groq.com/openai/v1/models", headers={"Authorization": f"Bearer {api_key}"}, timeout=5)
+                available_models = [m["id"] for m in models_resp.json().get("data", [])]
+                # Prioritize standard models if they exist, otherwise try everything
+                models_to_try = available_models
+            except Exception:
+                models_to_try = [
+                    "llama-3.3-70b-versatile",
+                    "llama-3.1-8b-instant",
+                    "mixtral-8x7b-32768"
+                ]
+
+            response = None
+            last_err = None
+            
+            for m in models_to_try:
+                # Skip whisper/audio models
+                if "whisper" in m.lower():
+                    continue
+                try:
+                    response = local_client.chat.completions.create(
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": augmented_query}
+                        ],
+                        model=m,
+                        max_tokens=8000,
+                        response_format={"type": "json_object"}
+                    )
+                    break # Success! Break out of the loop
+                except Exception as e:
+                    last_err = e
+                    continue # Try the next model
+                    
+            if response is None:
+                raise last_err
+
+            print(f"MODEL USED: {response.model}")
+            print(f"RAW OUTPUT: {response.choices[0].message.content}")
+            response_json = json.loads(response.choices[0].message.content)
+
+        else:
+            # Gemini implementation
+            model = genai.GenerativeModel(model_name, system_instruction=system_prompt)
+            response = model.generate_content(
+                augmented_query,
+                generation_config=genai.GenerationConfig(
+                    response_mime_type="application/json",
+                )
+            )
+            response_json = json.loads(response.text)
+
         
         # --- PLAYLIST INJECTION ARCHITECTURE ---
         import re as re_regex
@@ -230,6 +297,10 @@ Output ONLY raw JSON with this exact schema:
         raise Exception(f"AI Error: {e}")
 
 def search_youtube(query: str, search_type: str = "education", original_query: str = None):
+    cache_key = query.strip().lower()
+    if cache_key in SEARCH_CACHE:
+        return SEARCH_CACHE[cache_key]
+
     ydl_opts_fast = {
         "quiet": True,
         "no_warnings": True,
@@ -308,7 +379,7 @@ def search_youtube(query: str, search_type: str = "education", original_query: s
                         except:
                             pass
                             
-                return {
+                result = {
                     "title": best.get("title", "Unknown"),
                     "url": url,
                     "thumbnail": best.get("thumbnails", [{}])[-1].get("url") if best.get("thumbnails") else None,
@@ -319,6 +390,10 @@ def search_youtube(query: str, search_type: str = "education", original_query: s
                     "channel": channel,
                     "likes": likes
                 }
+                SEARCH_CACHE[cache_key] = result
+                if len(SEARCH_CACHE) > 5000:
+                    SEARCH_CACHE.pop(next(iter(SEARCH_CACHE)))
+                return result
             return None # All videos failed the date filter
     except Exception as e:
         print(f"Search error for {query}: {e}")
@@ -341,7 +416,9 @@ def download_video(url: str, output_dir: str, format_type: str = "video_high", t
             }],
             "quiet": True,
             "no_warnings": True,
-            "progress_hooks": [get_progress_hook(task_id)] if task_id else []
+            "progress_hooks": [get_progress_hook(task_id)] if task_id else [],
+            "extractor_args": {"youtube": ["player_client=ios,web"]},
+            "cookiesfrombrowser": ("brave",)
         }
     elif format_type == "video_fast":
         ydl_opts = {
@@ -350,7 +427,9 @@ def download_video(url: str, output_dir: str, format_type: str = "video_high", t
             "merge_output_format": "mp4",
             "quiet": True,
             "no_warnings": True,
-            "progress_hooks": [get_progress_hook(task_id)] if task_id else []
+            "progress_hooks": [get_progress_hook(task_id)] if task_id else [],
+            "extractor_args": {"youtube": ["player_client=ios,web"]},
+            "cookiesfrombrowser": ("brave",)
         }
     else:
         # video_high
@@ -360,7 +439,9 @@ def download_video(url: str, output_dir: str, format_type: str = "video_high", t
             "merge_output_format": "mp4",
             "quiet": True,
             "no_warnings": True,
-            "progress_hooks": [get_progress_hook(task_id)] if task_id else []
+            "progress_hooks": [get_progress_hook(task_id)] if task_id else [],
+            "extractor_args": {"youtube": ["player_client=ios,web"]},
+            "cookiesfrombrowser": ("brave",)
         }
     
     if node_path:

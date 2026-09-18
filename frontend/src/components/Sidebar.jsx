@@ -44,10 +44,6 @@ export default function Sidebar({ isOpen, closeMenu }) {
         
         {/* Navigation List */}
         <nav className="flex flex-col gap-1 px-3 mt-2">
-          <Link to="/studio" className={getLinkClasses('/studio')}>
-            <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
-            <span>Roadmap</span>
-          </Link>
           <Link to="/" className={getLinkClasses('/')}>
             <span className="material-symbols-outlined text-[20px]">explore</span>
             <span>Home</span>
@@ -57,7 +53,7 @@ export default function Sidebar({ isOpen, closeMenu }) {
             <span>Library</span>
           </Link>
           <button onClick={() => window.dispatchEvent(new Event("open-settings"))} className={getLinkClasses('/settings')}>
-            <span className="material-symbols-outlined text-[20px]">key</span>
+            <span className="material-symbols-outlined text-[20px]">api</span>
             <span>API & Keys</span>
           </button>
         </nav>
@@ -68,7 +64,7 @@ export default function Sidebar({ isOpen, closeMenu }) {
         {user ? (
           <div onClick={() => setIsProfileModalOpen(true)} className="p-4 rounded-2xl bg-surface-container-low flex items-center justify-between shadow-sm cursor-pointer hover:bg-surface-container transition-colors">
             <div className="flex items-center gap-3">
-              <img alt="Profile" className="w-8 h-8 rounded-full object-cover bg-white" src={user.avatar} />
+              <img alt="Profile" className="w-8 h-8 rounded-full object-cover bg-white" src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} />
               <div className="flex flex-col min-w-0">
                 <span className="font-label-md text-label-md text-on-surface font-semibold truncate">{user.name}</span>
                 <span className="font-label-sm text-label-[10px] text-on-surface-variant uppercase">Pro Plan</span>

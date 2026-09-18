@@ -1,30 +1,172 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  
+  --color-primary: var(--color-primary);
+  --color-on-primary: var(--color-on-primary);
+  --color-primary-container: var(--color-primary-container);
+  --color-on-primary-container: var(--color-on-primary-container);
+  
+  --color-secondary: var(--color-secondary);
+  --color-on-secondary: var(--color-on-secondary);
+  --color-secondary-container: var(--color-secondary-container);
+  --color-on-secondary-container: var(--color-on-secondary-container);
+  
+  --color-tertiary: var(--color-tertiary);
+  --color-on-tertiary: var(--color-on-tertiary);
+  --color-tertiary-container: var(--color-tertiary-container);
+  --color-on-tertiary-container: var(--color-on-tertiary-container);
+  
+  --color-error: var(--color-error);
+  --color-on-error: var(--color-on-error);
+  --color-error-container: var(--color-error-container);
+  --color-on-error-container: var(--color-on-error-container);
+  
+  --color-background: var(--color-background);
+  --color-on-background: var(--color-on-background);
+  
+  --color-surface: var(--color-surface);
+  --color-on-surface: var(--color-on-surface);
+  --color-surface-variant: var(--color-surface-variant);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+  
+  --color-outline: var(--color-outline);
+  --color-outline-variant: var(--color-outline-variant);
+  
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container: var(--color-surface-container);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-container-highest: var(--color-surface-container-highest);
+}
+
+
+:root {
+  --color-primary: #4648d4;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #6063ee;
+  --color-on-primary-container: #fffbff;
+  
+  --color-secondary: #6b38d4;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #8455ef;
+  --color-on-secondary-container: #fffbff;
+  
+  --color-tertiary: #00628d;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #007cb1;
+  --color-on-tertiary-container: #fcfcff;
+  
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  
+  --color-background: #faf8ff;
+  --color-on-background: #131b2e;
+  
+  --color-surface: #faf8ff;
+  --color-on-surface: #131b2e;
+  --color-surface-variant: #dae2fd;
+  --color-on-surface-variant: #464554;
+  
+  --color-outline: #767586;
+  --color-outline-variant: #c7c4d7;
+  
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f3ff;
+  --color-surface-container: #eaedff;
+  --color-surface-container-high: #e2e7ff;
+  --color-surface-container-highest: #dae2fd;
+}
+
+.dark {
+  --color-primary: #b5b6ff;
+  --color-on-primary: #1211a3;
+  --color-primary-container: #2b2ab6;
+  --color-on-primary-container: #e1e0ff;
+  
+  --color-secondary: #d0bcff;
+  --color-on-secondary: #3b0091;
+  --color-secondary-container: #5311bc;
+  --color-on-secondary-container: #e9ddff;
+  
+  --color-tertiary: #89ceff;
+  --color-on-tertiary: #00344d;
+  --color-tertiary-container: #004c6e;
+  --color-on-tertiary-container: #c9e6ff;
+  
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  
+  --color-background: #0f1016;
+  --color-on-background: #e2e2ea;
+  
+  --color-surface: #0f1016;
+  --color-on-surface: #e2e2ea;
+  --color-surface-variant: #454653;
+  --color-on-surface-variant: #c5c6d5;
+  
+  --color-outline: #8f909e;
+  --color-outline-variant: #454653;
+  
+  --color-surface-container-lowest: #08080b;
+  --color-surface-container-low: #131317;
+  --color-surface-container: #1b1c23;
+  --color-surface-container-high: #23242b;
+  --color-surface-container-highest: #2e2f36;
+}
 
 body {
-  @apply bg-google-dark text-gray-200 antialiased font-sans;
+  @apply bg-background text-on-background antialiased font-sans transition-colors duration-300;
 }
 
-@layer base {
-  .dark {
-    --color-background: #0f0f11;
-    --color-surface: #1c1c1f;
-    --color-surface-container-lowest: #0f0f11;
-    --color-surface-container-low: #1c1c1f;
-    --color-surface-container: #262629;
-    --color-surface-container-high: #2d2d33;
-    --color-on-surface: #e5e5e5;
-    --color-on-surface-variant: #a0a0a5;
-    --color-outline-variant: #2d2d33;
-  }
-}
+@layer utilities {
+  .text-display-lg { font-size: 57px; line-height: 64px; letter-spacing: -0.25px; }
+  .font-display-lg { font-weight: 400; }
+  
+  .text-display-md { font-size: 45px; line-height: 52px; letter-spacing: 0px; }
+  .font-display-md { font-weight: 400; }
+  
+  .text-display-sm { font-size: 36px; line-height: 44px; letter-spacing: 0px; }
+  .font-display-sm { font-weight: 400; }
 
-.dark .bg-background { background-color: #0f0f11 !important; }
-.dark .bg-surface-container-lowest { background-color: #121214 !important; }
-.dark .bg-surface-container-low { background-color: #1c1c1f !important; }
-.dark .bg-surface-container { background-color: #262629 !important; }
-.dark .bg-surface-container-high { background-color: #2d2d33 !important; }
-.dark .text-on-surface { color: #e5e5e5 !important; }
-.dark .text-on-surface-variant { color: #a0a0a5 !important; }
-.dark .border-outline-variant { border-color: #2d2d33 !important; }
-.dark .shadow-sm { box-shadow: none !important; }
+  .text-headline-lg { font-size: 32px; line-height: 40px; letter-spacing: 0px; }
+  .font-headline-lg { font-weight: 400; }
+
+  .text-headline-md { font-size: 28px; line-height: 36px; letter-spacing: 0px; }
+  .font-headline-md { font-weight: 400; }
+
+  .text-headline-sm { font-size: 24px; line-height: 32px; letter-spacing: 0px; }
+  .font-headline-sm { font-weight: 400; }
+
+  .text-title-lg { font-size: 22px; line-height: 28px; letter-spacing: 0px; }
+  .font-title-lg { font-weight: 400; }
+
+  .text-title-md { font-size: 16px; line-height: 24px; letter-spacing: 0.15px; }
+  .font-title-md { font-weight: 500; }
+
+  .text-title-sm { font-size: 14px; line-height: 20px; letter-spacing: 0.1px; }
+  .font-title-sm { font-weight: 500; }
+
+  .text-body-lg { font-size: 16px; line-height: 24px; letter-spacing: 0.5px; }
+  .font-body-lg { font-weight: 400; }
+
+  .text-body-md { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
+  .font-body-md { font-weight: 400; }
+
+  .text-body-sm { font-size: 12px; line-height: 16px; letter-spacing: 0.4px; }
+  .font-body-sm { font-weight: 400; }
+
+  .text-label-lg { font-size: 14px; line-height: 20px; letter-spacing: 0.1px; }
+  .font-label-lg { font-weight: 500; }
+
+  .text-label-md { font-size: 12px; line-height: 16px; letter-spacing: 0.5px; }
+  .font-label-md { font-weight: 500; }
+
+  .text-label-sm { font-size: 11px; line-height: 16px; letter-spacing: 0.5px; }
+  .font-label-sm { font-weight: 500; }
+}
