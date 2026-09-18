@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 from ddgs import DDGS
 
 load_dotenv()
-client = Groq()
+api_key = os.environ.get("GROQ_API_KEY", "dummy_key_to_prevent_crash")
+client = Groq(api_key=api_key)
 
 node_path = shutil.which("node")
 

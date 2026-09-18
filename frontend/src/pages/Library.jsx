@@ -1,189 +1,271 @@
 import React, { useEffect, useState } from 'react';
-import { getLibrarySongs, removeSongFromLibrary } from '../utils/db';
+import { getLibrarySongs, removeSongFromLibrary, saveSongToLibrary } from '../utils/db';
+import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../utils/supabase';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Library() {
-  const [songs, setSongs] = useState([]);
+  const [activeTab, setActiveTab] = useState('audio'); // 'audio', 'video', 'cloud'
+  const [dbSongs, setDbSongs] = useState([]);
+  const [cloudMedia, setCloudMedia] = useState([]);
+  const [isDownloading, setIsDownloading] = useState(false);
+  
+  const { playTrack, currentTrack, isPlaying, togglePlay } = useAppContext();
+  const { user } = useAuth();
 
   useEffect(() => {
-    loadSongs();
+    loadOfflineMedia();
+    loadCloudMedia();
   }, []);
 
-  const loadSongs = async () => {
+  const loadOfflineMedia = async () => {
     try {
-      const dbSongs = await getLibrarySongs();
-      setSongs(dbSongs);
+      const songs = await getLibrarySongs();
+      setDbSongs(songs);
     } catch (e) {
       console.error(e);
-      toast.error('Failed to load library');
+      toast.error('Failed to load local device library');
     }
   };
 
-  const handleRemove = async (id) => {
-    await removeSongFromLibrary(id);
-    toast.success('Removed from library');
-    loadSongs();
+  const loadCloudMedia = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/cloud-media', {
+        headers: {
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setCloudMedia(json.data || []);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to load cloud media');
+    }
   };
 
-  const mockRows = [
-    { title: 'Neural Soundscape #04 (Latent Field A)', seed: 'lat-094182f', category: 'Music', size: '48 MB', format: 'WAV 24-bit', duration: '05:12' },
-    { title: 'Cognitive Synthesis & Memory Graph Theory', seed: 'edu-8931a', category: 'Learning', size: '1.24 GB', format: 'MP4 4K', duration: '42:15' },
-    { title: 'Attention Mechanisms in Transformer Architecture', seed: 'v_80911ca', category: 'Learning', size: '420 MB', format: 'MP4 4K', duration: '28:10' },
-  ];
+  const handleRemoveDb = async (id) => {
+    try {
+      await removeSongFromLibrary(id);
+      setDbSongs(prev => prev.filter(s => s.id !== id));
+      toast.success("Removed from device storage");
+    } catch (e) {
+      toast.error("Failed to remove file");
+    }
+  };
+
+  const downloadFromCloud = async (file) => {
+    if (isDownloading) return toast.error("Already downloading a file...");
+    setIsDownloading(true);
+    const toastId = toast.loading(`Downloading ${file.title} to device...`);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(file.url, {
+        headers: {
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        }
+      });
+      if (!res.ok) throw new Error("Failed to fetch from cloud");
+      
+      const blob = await res.blob();
+      await saveSongToLibrary({
+        id: file.id,
+        title: file.title,
+        artist: "Cloud Import",
+        blob: blob,
+        type: file.type,
+        coverUrl: `https://api.dicebear.com/7.x/shapes/svg?seed=${file.title}`
+      });
+      
+      toast.success("Saved to device for offline play!", { id: toastId });
+      loadOfflineMedia(); // Refresh offline lists
+    } catch (e) {
+      console.error(e);
+      toast.error("Download failed", { id: toastId });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // Filter lists based on tabs
+  const offlineAudio = dbSongs.filter(s => s.type === 'audio' || !s.type);
+  const offlineVideo = dbSongs.filter(s => s.type === 'video');
+
+  const renderMediaRow = (item, isCloud = false) => {
+    const isCurrentlyPlaying = currentTrack?.id === item.id || currentTrack?.filename === item.filename;
+    
+    return (
+      <tr key={item.id} className={`hover:bg-surface-container-low/50 transition-colors group cursor-pointer ${isCurrentlyPlaying ? 'bg-primary-container/20' : ''}`}>
+        <td className="py-4 px-6" onClick={() => playTrack({ ...item, source: isCloud ? 'server' : 'local' })}>
+          <div className="flex items-center gap-4 min-w-[240px]">
+            <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-secondary-container flex items-center justify-center shadow-inner">
+              {isCurrentlyPlaying && isPlaying ? (
+                <div className="flex items-end justify-center gap-0.5 w-full h-full opacity-80 pb-3">
+                  <div className="w-1.5 bg-primary rounded-t-sm h-3 animate-pulse" style={{animationDuration: '0.6s'}}></div>
+                  <div className="w-1.5 bg-primary rounded-t-sm h-5 animate-pulse" style={{animationDuration: '0.8s'}}></div>
+                  <div className="w-1.5 bg-primary rounded-t-sm h-4 animate-pulse" style={{animationDuration: '0.5s'}}></div>
+                </div>
+              ) : (
+                <span className="material-symbols-outlined text-on-secondary-container text-[22px] drop-shadow">
+                  {item.type === 'video' ? 'videocam' : 'graphic_eq'}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col min-w-0 max-w-[250px]">
+              <span className={`font-label-lg text-label-lg font-semibold truncate group-hover:text-primary transition-colors ${isCurrentlyPlaying ? 'text-primary' : 'text-on-surface'}`}>
+                {item.title}
+              </span>
+              <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
+                {item.artist || 'Unknown'}
+              </span>
+            </div>
+          </div>
+        </td>
+        <td className="py-4 px-4 hidden md:table-cell">
+          <span className="px-3 py-1 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm inline-flex items-center gap-1 font-semibold">
+            {isCloud ? '☁️ Cloud' : '📱 Device'}
+          </span>
+        </td>
+        <td className="py-4 px-6 text-right">
+          <div className="flex items-center justify-end gap-2">
+            <button 
+              onClick={(e) => { e.stopPropagation(); isCurrentlyPlaying ? togglePlay() : playTrack({ ...item, source: isCloud ? 'server' : 'local' }); }} 
+              className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-105 transition-transform" 
+              title={isCurrentlyPlaying && isPlaying ? "Pause" : "Play"}
+            >
+              <span className="material-symbols-outlined">{isCurrentlyPlaying && isPlaying ? "pause" : "play_arrow"}</span>
+            </button>
+            
+            {isCloud ? (
+              <button 
+                onClick={(e) => { e.stopPropagation(); downloadFromCloud(item); }}
+                disabled={isDownloading}
+                className="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50" 
+                title="Import to Device"
+              >
+                <span className="material-symbols-outlined">download</span>
+              </button>
+            ) : (
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleRemoveDb(item.id); }}
+                className="w-10 h-10 rounded-full hover:bg-error-container text-error flex items-center justify-center transition-colors"
+                title="Remove from Device"
+              >
+                <span className="material-symbols-outlined">delete</span>
+              </button>
+            )}
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
+  const getActiveList = () => {
+    if (activeTab === 'audio') return offlineAudio;
+    if (activeTab === 'video') return offlineVideo;
+    return cloudMedia;
+  };
+
+  const activeList = getActiveList();
 
   return (
-    <div className="relative p-4 md:p-8 pt-6 pb-40 flex flex-col gap-10 overflow-hidden w-full">
-      <div className="absolute top-0 right-10 w-96 h-96 bg-gradient-to-br from-primary-fixed-dim/25 via-secondary-fixed/20 to-transparent rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-        <div className="flex flex-col gap-2 max-w-2xl">
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm tracking-widest uppercase">Cache Layer v2.6</span>
-            <span className="text-outline text-body-sm">•</span>
-            <span className="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              IndexedDB Synchronized
-            </span>
-          </div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">Offline Library & Local IndexedDB Cache</h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">Zero-latency media playback without bandwidth dependence. Content remains cryptographically verified and locally addressable across all active nodes.</p>
+    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-[1600px] mx-auto w-full gap-8 mb-24">
+      {/* Header & Tabs */}
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="font-headline-lg text-headline-lg text-on-surface mb-2">Media Library</h1>
+          <p className="font-body-md text-body-md text-on-surface-variant">
+            Manage your offline downloads and browse the cloud server.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="px-4 py-2 rounded-full bg-surface-container-low text-on-surface-variant hover:text-error hover:bg-error-container/30 transition-all font-label-md text-label-md flex items-center gap-2 shadow-sm">
-            <span className="material-symbols-outlined text-[18px]">cleaning_services</span>
-            <span>Clean Cache</span>
+
+        <div className="flex p-1 bg-surface-container-low rounded-xl w-fit border border-outline-variant/30">
+          <button 
+            onClick={() => setActiveTab('audio')}
+            className={`px-6 py-2.5 rounded-lg font-label-md transition-all ${activeTab === 'audio' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface hover:bg-surface-container'}`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">headphones</span>
+              Offline Audio
+            </div>
+          </button>
+          <button 
+            onClick={() => setActiveTab('video')}
+            className={`px-6 py-2.5 rounded-lg font-label-md transition-all ${activeTab === 'video' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface hover:bg-surface-container'}`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">videocam</span>
+              Offline Video
+            </div>
+          </button>
+          <button 
+            onClick={() => setActiveTab('cloud')}
+            className={`px-6 py-2.5 rounded-lg font-label-md transition-all ${activeTab === 'cloud' ? 'bg-secondary text-on-secondary shadow-sm' : 'text-on-surface hover:bg-surface-container'}`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">cloud</span>
+              Cloud Server
+            </div>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="p-6 rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Cached</span>
-            <div className="w-9 h-9 rounded-xl bg-primary-fixed text-primary flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">database</span>
-            </div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-display-md text-display-md text-on-surface">14.8</span>
-              <span className="font-headline-sm text-headline-sm text-on-surface-variant">GB</span>
-            </div>
-            <span className="font-body-sm text-body-sm text-emerald-600 flex items-center gap-0.5 mt-1 font-semibold">
-              <span className="material-symbols-outlined text-[14px]">arrow_downward</span>
-              4.2 GB saved this week
+      {/* Main Content Area */}
+      <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl overflow-hidden shadow-sm flex flex-col">
+        <div className="p-6 border-b border-outline-variant/30 bg-surface-container-lowest flex items-center justify-between">
+          <div className="flex items-center gap-3 text-on-surface">
+            <span className="material-symbols-outlined text-primary">
+              {activeTab === 'cloud' ? 'cloud_sync' : 'sd_storage'}
+            </span>
+            <span className="font-title-md text-title-md font-semibold">
+              {activeTab === 'audio' && 'Device Audio Cache'}
+              {activeTab === 'video' && 'Device Video Cache'}
+              {activeTab === 'cloud' && 'Central Server Library'}
             </span>
           </div>
-        </div>
-        {/* Skipping the other 3 stats cards for brevity in React component unless needed */}
-      </div>
-
-      <div className="rounded-3xl bg-surface-container-lowest shadow-sm overflow-hidden flex flex-col">
-        <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h2 className="font-headline-sm text-headline-sm text-on-surface">Saved Offline Media</h2>
-            <span className="px-3 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">{songs.length + mockRows.length} Objects</span>
-          </div>
+          <span className="px-3 py-1 bg-surface-container rounded-full text-on-surface font-label-sm">
+            {activeList.length} items
+          </span>
         </div>
         
         <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+          <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
-                <th className="py-4 px-6 font-semibold">Media Node</th>
-                <th className="py-4 px-4 font-semibold">Origin & Seed</th>
-                <th className="py-4 px-4 font-semibold">Category</th>
-                <th className="py-4 px-4 font-semibold">Payload</th>
-                <th className="py-4 px-4 font-semibold">Sync Status</th>
+                <th className="py-4 px-6 font-semibold">Media Details</th>
+                <th className="py-4 px-4 font-semibold hidden md:table-cell">Storage Location</th>
                 <th className="py-4 px-6 text-right font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y-0 text-body-sm font-body-sm text-on-surface">
-              {songs.map((song, idx) => (
-                <tr key={idx} className="hover:bg-surface-container-low/50 transition-colors group cursor-pointer">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-4 min-w-[240px]">
-                      <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-secondary flex items-center justify-center shadow-inner">
-                        <span className="material-symbols-outlined text-white absolute text-[22px] drop-shadow">graphic_eq</span>
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-label-lg text-label-lg font-semibold text-on-surface truncate group-hover:text-primary transition-colors">{song.title}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-label-md text-label-md font-medium text-on-surface">Custom Import</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="px-3 py-1 rounded-full bg-secondary-fixed/50 text-on-secondary-fixed font-label-sm text-label-sm inline-flex items-center gap-1 font-semibold">
-                      <span>🎵</span> Music
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="font-label-md text-label-md font-semibold text-on-surface">WAV</span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-label-sm text-label-sm inline-flex items-center gap-1 font-medium">
-                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                      ✓ Ready
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="w-8 h-8 rounded-full hover:bg-error-container text-error flex items-center justify-center transition-colors" onClick={() => handleRemove(song.id)}>
-                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {mockRows.map((row, idx) => (
-                 <tr key={`mock-${idx}`} className="hover:bg-surface-container-low/50 transition-colors group cursor-pointer">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-4 min-w-[240px]">
-                      <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-primary flex items-center justify-center shadow-inner">
-                        <span className="material-symbols-outlined text-white absolute text-[22px] drop-shadow">{row.category === 'Music' ? 'graphic_eq' : 'videocam'}</span>
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-label-lg text-label-lg font-semibold text-on-surface truncate group-hover:text-primary transition-colors">{row.title}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-label-md text-label-md font-medium text-on-surface">seed://{row.seed}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="px-3 py-1 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm inline-flex items-center gap-1 font-semibold">
-                      {row.category}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-label-md text-label-md font-semibold text-on-surface">{row.size}</span>
-                      <span className="font-label-sm text-label-sm text-on-surface-variant">{row.format}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-label-sm text-label-sm inline-flex items-center gap-1 font-medium">
-                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                      ✓ Offline Ready
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="play-trigger w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-105 transition-transform" title="Load in Deck">
-                        <span className="material-symbols-outlined text-[18px]">play_arrow</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              <AnimatePresence mode="popLayout">
+                {activeList.map(item => renderMediaRow(item, activeTab === 'cloud'))}
+              </AnimatePresence>
             </tbody>
           </table>
+          
+          {activeList.length === 0 && (
+            <div className="w-full py-16 flex flex-col items-center justify-center text-on-surface-variant">
+              <span className="material-symbols-outlined text-[48px] opacity-50 mb-4">
+                {activeTab === 'cloud' ? 'cloud_off' : 'folder_off'}
+              </span>
+              <p className="font-label-lg text-label-lg">
+                {activeTab === 'cloud' 
+                  ? "No media found on the central server." 
+                  : "No downloaded media on this device."}
+              </p>
+              <p className="font-body-sm text-body-sm mt-1 opacity-70">
+                {activeTab === 'cloud'
+                  ? "Generate a roadmap and download videos to populate the cloud."
+                  : "Switch to the Cloud Server tab to import files for offline play."}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

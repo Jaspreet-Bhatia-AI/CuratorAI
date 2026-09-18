@@ -6,8 +6,6 @@ export default function SettingsModal() {
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_key') || '');
   const [groqKey, setGroqKey] = useState(localStorage.getItem('groq_key') || '');
 
-  // We can open it via a global state or event bus, but for now we'll just render it based on isOpen
-  // Wait, Navbar settings button needs to trigger this. We can use a custom event.
   React.useEffect(() => {
     const handleOpen = () => setIsOpen(true);
     window.addEventListener('open-settings', handleOpen);
@@ -72,11 +70,7 @@ export default function SettingsModal() {
                   placeholder="gsk_..." 
                   className="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 pl-10 pr-12 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm transition-all"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[18px]">visibility</span>
-                </button>
               </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant ml-1">Used for ultra-low latency curriculum generation and rapid logic structuring.</p>
             </div>
 
             {/* Google Gemini Key Input */}
@@ -94,12 +88,9 @@ export default function SettingsModal() {
                   placeholder="AIza..." 
                   className="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 pl-10 pr-12 focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary text-on-surface font-mono text-sm transition-all"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-secondary transition-colors">
-                  <span className="material-symbols-outlined text-[18px]">visibility</span>
-                </button>
               </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant ml-1">Used for complex multimodal synthesis, long-context analysis, and aesthetic routing.</p>
             </div>
+
           </div>
           
         </div>

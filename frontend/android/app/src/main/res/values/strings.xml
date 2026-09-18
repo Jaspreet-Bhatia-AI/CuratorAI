@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Curator AI</string>
+    <string name="title_activity_main">Curator AI</string>
+    <string name="package_name">com.curatorai.app</string>
+    <string name="custom_url_scheme">com.curatorai.app</string>
+</resources>

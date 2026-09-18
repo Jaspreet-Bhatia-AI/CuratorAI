@@ -1,13 +1,16 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import { motion } from "framer-motion";
 
 export default function Home() {
-  const { searchQuery, setSearchQuery } = useAppContext();
+  const { searchQuery, setSearchQuery, handleSearch } = useAppContext();
   const navigate = useNavigate();
+  const [activeCategory, setActiveCategory] = useState('Learning');
 
   const handleGenerate = () => {
     if (searchQuery.trim()) {
+      handleSearch(searchQuery);
       navigate('/studio');
     }
   };
@@ -20,11 +23,19 @@ export default function Home() {
 
   const selectPrompt = (promptText) => {
     setSearchQuery(promptText);
+    handleSearch(promptText);
     navigate('/studio');
   };
 
+  const categories = [
+    { name: 'Learning', icon: '📚' },
+    { name: 'Music', icon: '🎵' },
+    { name: 'Entertainment', icon: '🍿' },
+    { name: 'Everything Else', icon: '✨' }
+  ];
+
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-4rem)] items-center justify-center relative overflow-hidden px-4 sm:px-6 lg:px-12 select-none">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }} className="flex flex-col w-full min-h-[calc(100vh-4rem)] items-center justify-center relative overflow-hidden px-4 sm:px-6 lg:px-12 select-none">
       {/* Glowing Ambient Background Orbs */}
       <div className="absolute -top-32 -left-20 w-96 h-96 rounded-full bg-gradient-to-tr from-primary/30 to-secondary/25 blur-3xl pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '8s' }}></div>
       <div className="absolute top-1/3 -right-24 w-[30rem] h-[30rem] rounded-full bg-gradient-to-bl from-secondary-container/20 to-tertiary/20 blur-3xl pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '12s' }}></div>
@@ -36,13 +47,13 @@ export default function Home() {
         <div className="flex flex-col items-center text-center space-y-1 mb-6">
           <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-primary/10 text-primary mb-1">
             <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
-            <span className="font-label-md text-label-md">Infinite Knowledge & Sensory Synthesis</span>
+            <span className="font-label-md text-label-md">Curator AI Intelligence</span>
           </div>
           <h1 className="font-display-lg text-display-lg sm:text-[56px] text-on-surface tracking-tight leading-none">
-            Focus your <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-tertiary">intellect.</span>
+            Focus your <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-tertiary">learning.</span>
           </h1>
           <p className="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto pt-1">
-            Synthesize deep video curricula, algorithmic soundscapes, and cinematic visual feeds in one stroke.
+            Synthesize deep educational roadmaps, personalized music playlists, and curated entertainment feeds.
           </p>
         </div>
         
@@ -79,47 +90,48 @@ export default function Home() {
         
         {/* Interactive Mode Segmented Toggle / Pills */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-1 p-1.5 rounded-2xl bg-surface-container-low/90 backdrop-blur-md shadow-inner max-w-full">
-          <button className="flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer bg-surface-container-lowest text-primary shadow-md shadow-primary/10 font-label-md text-label-md">
-            <span className="text-base">📚</span>
-            <span>Learning</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-primary ml-1"></span>
-          </button>
-          <button className="flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest/60 font-label-md text-label-md">
-            <span className="text-base">🎵</span>
-            <span>Music</span>
-          </button>
-          <button className="flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest/60 font-label-md text-label-md">
-            <span className="text-base">🍿</span>
-            <span>Entertainment</span>
-          </button>
-          <button className="flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest/60 font-label-md text-label-md">
-            <span className="text-base">✨</span>
-            <span>Everything Else</span>
-          </button>
+          {categories.map(cat => {
+            const isActive = activeCategory === cat.name;
+            return (
+              <button 
+                key={cat.name}
+                onClick={() => setActiveCategory(cat.name)}
+                className={`flex items-center gap-1 px-4 py-1 rounded-xl transition-all cursor-pointer font-label-md text-label-md ${
+                  isActive 
+                    ? 'bg-surface-container-lowest text-primary shadow-md shadow-primary/10' 
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest/60'
+                }`}
+              >
+                <span className="text-base">{cat.icon}</span>
+                <span>{cat.name}</span>
+                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-primary ml-1"></span>}
+              </button>
+            );
+          })}
         </div>
         
         {/* Curated Dynamic Presets */}
         <div className="mt-8 w-full flex flex-col items-center">
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-[14px] text-outline">trending_up</span>
-            <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Recommended syntheses</span>
+            <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Recommended</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 w-full">
-            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Latent Diffusion & Video Motion Dynamics')}>
+            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Python Backend Development Roadmap')}>
               <span className="w-2 h-2 rounded-full bg-primary/70 group-hover:bg-primary transition-colors"></span>
-              <span>Latent Diffusion & Video Motion Dynamics</span>
+              <span>Python Backend Development Roadmap</span>
             </button>
-            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Bioluminescent Chrono-Flora Synth')}>
+            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Learn Quantum Physics from scratch')}>
               <span className="w-2 h-2 rounded-full bg-tertiary/70 group-hover:bg-tertiary transition-colors"></span>
-              <span>Bioluminescent Chrono-Flora Synth</span>
+              <span>Learn Quantum Physics from scratch</span>
             </button>
-            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Lo-Fi Deep Tensor Beats')}>
+            <button className="group flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm hover:shadow-md transition-all" onClick={() => selectPrompt('Top 2026 Lo-Fi Focus Beats')}>
               <span className="w-2 h-2 rounded-full bg-secondary/70 group-hover:bg-secondary transition-colors"></span>
-              <span>Lo-Fi Deep Tensor Beats</span>
+              <span>Top 2026 Lo-Fi Focus Beats</span>
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

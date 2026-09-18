@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,10 @@ export function AppProvider({ children }) {
   const [curriculum, setCurriculum] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
+
+  // Audio Player State
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const handleSearch = async (query) => {
     if (!query) return;
@@ -28,10 +32,10 @@ export function AppProvider({ children }) {
       });
       if (!res.ok) throw new Error("Failed to fetch roadmap");
       const data = await res.json();
-      setRoadmap(data);
-      setCurriculum(data.curriculum || []);
-      if (data.roadmap_overview?.length > 0) {
-        setSelectedTopic(data.roadmap_overview[0]);
+      const payload = data.data || data; setRoadmap(payload);
+      setCurriculum(payload.curriculum || []);
+      if (payload.roadmap_overview?.length > 0) {
+        setSelectedTopic(payload.roadmap_overview[0]);
       }
     } catch (error) {
       console.error(error);
@@ -40,12 +44,24 @@ export function AppProvider({ children }) {
     setIsLoading(false);
   };
 
+  const playTrack = (track) => {
+    setCurrentTrack(track);
+    setIsPlaying(true);
+  };
+
+  const togglePlay = () => {
+    if (currentTrack) {
+      setIsPlaying(!isPlaying);
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       searchQuery, setSearchQuery,
       roadmap, curriculum, setCurriculum,
       isLoading, selectedTopic, setSelectedTopic,
-      handleSearch
+      handleSearch,
+      currentTrack, isPlaying, playTrack, togglePlay, setIsPlaying
     }}>
       {children}
     </AppContext.Provider>

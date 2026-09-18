@@ -4,3 +4,27 @@
 body {
   @apply bg-google-dark text-gray-200 antialiased font-sans;
 }
+
+@layer base {
+  .dark {
+    --color-background: #0f0f11;
+    --color-surface: #1c1c1f;
+    --color-surface-container-lowest: #0f0f11;
+    --color-surface-container-low: #1c1c1f;
+    --color-surface-container: #262629;
+    --color-surface-container-high: #2d2d33;
+    --color-on-surface: #e5e5e5;
+    --color-on-surface-variant: #a0a0a5;
+    --color-outline-variant: #2d2d33;
+  }
+}
+
+.dark .bg-background { background-color: #0f0f11 !important; }
+.dark .bg-surface-container-lowest { background-color: #121214 !important; }
+.dark .bg-surface-container-low { background-color: #1c1c1f !important; }
+.dark .bg-surface-container { background-color: #262629 !important; }
+.dark .bg-surface-container-high { background-color: #2d2d33 !important; }
+.dark .text-on-surface { color: #e5e5e5 !important; }
+.dark .text-on-surface-variant { color: #a0a0a5 !important; }
+.dark .border-outline-variant { border-color: #2d2d33 !important; }
+.dark .shadow-sm { box-shadow: none !important; }

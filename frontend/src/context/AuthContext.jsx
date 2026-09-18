@@ -1,27 +1,46 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { supabase } from '../utils/supabase';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [credits, setCredits] = useState(0);
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Modal States
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   
   // AI Provider Settings
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [aiConfig, setAiConfig] = useState({
-    provider: 'gemini', // 'gemini' or 'groq'
+    provider: 'gemini', 
     key: ''
   });
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('curator_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      setCredits(5);
-    }
-        const savedTheme = localStorage.getItem('curator_theme');
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) fetchUserData(session.user.id);
+      setLoading(false);
+    });
+
+    // Listen for changes on auth state (login, signout, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) fetchUserData(session.user.id);
+      else setCredits(0);
+    });
+
+    // Load theme & AI config from local storage
+    const savedTheme = localStorage.getItem('curator_theme');
     if (savedTheme === 'light') {
       setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
@@ -29,13 +48,22 @@ export function AuthProvider({ children }) {
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
     }
+    
     const savedConfig = localStorage.getItem('curator_ai_config');
     if (savedConfig) {
       setAiConfig(JSON.parse(savedConfig));
     }
+
+    return () => subscription.unsubscribe();
   }, []);
 
-    const toggleTheme = () => {
+  const fetchUserData = async (userId) => {
+    // Placeholder for fetching user credits/metadata from your 'users' table
+    // For now, give them 5 credits locally if logged in
+    setCredits(5);
+  };
+
+  const toggleTheme = () => {
     setIsDarkMode(prev => {
       const newMode = !prev;
       localStorage.setItem('curator_theme', newMode ? 'dark' : 'light');
@@ -53,18 +81,84 @@ export function AuthProvider({ children }) {
     localStorage.setItem('curator_ai_config', JSON.stringify(config));
   };
 
-  const loginWithGoogle = () => {
-    const dummyUser = { id: 1, name: 'Guest User', email: 'guest@example.com', avatar: 'https://ui-avatars.com/api/?name=Guest+User&background=0D8ABC&color=fff' };
-    setUser(dummyUser);
-    setCredits(5);
-    localStorage.setItem('curator_user', JSON.stringify(dummyUser));
-    setIsLoginModalOpen(false);
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error.message || "Failed to login with Google");
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    setCredits(0);
-    localStorage.removeItem('curator_user');
+  const loginWithEmail = async (email, password, isSignUp, name = '') => {
+    try {
+      if (isSignUp) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+              avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name || email}`
+            }
+          }
+        });
+        if (error) throw error;
+        toast.success("Signup successful! Please check your email to verify.");
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        toast.success("Successfully logged in!");
+        setIsLoginModalOpen(false);
+      }
+    } catch (error) {
+      toast.error(error.message || "Authentication failed");
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/profile`,
+      });
+      if (error) throw error;
+      toast.success("Password reset email sent!");
+    } catch (error) {
+      toast.error(error.message || "Failed to send reset email");
+    }
+  };
+
+  const updateProfile = async (updates) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: updates
+      });
+      if (error) throw error;
+      toast.success("Profile updated!");
+    } catch (error) {
+      toast.error(error.message || "Failed to update profile");
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      toast.success("Successfully logged out.");
+      setIsProfileModalOpen(false);
+    } catch (error) {
+      toast.error(error.message || "Failed to logout");
+    }
   };
 
   const deductCredit = () => {
@@ -77,13 +171,16 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ 
-      user, credits, loginWithGoogle, logout, deductCredit, 
+      user, credits, loading,
+      loginWithGoogle, loginWithEmail, logout, deductCredit, 
+      resetPassword, updateProfile,
       isLoginModalOpen, setIsLoginModalOpen,
+      isProfileModalOpen, setIsProfileModalOpen,
       isSettingsModalOpen, setIsSettingsModalOpen,
       isDarkMode, toggleTheme,
       aiConfig, saveAiConfig
     }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

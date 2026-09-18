@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
@@ -9,28 +9,50 @@ import Library from './pages/Library';
 import NotFound from './pages/NotFound';
 import { Toaster } from 'react-hot-toast';
 import { AppProvider } from './context/AppContext';
+import Profile from "./pages/Profile";
 import { AuthProvider } from './context/AuthContext';
-import LoginModal from './components/LoginModal';
 import SettingsModal from './components/SettingsModal';
+import AuthModal from './components/AuthModal';
+import ProfileModal from './components/ProfileModal';
 import PwaUpdater from './components/PwaUpdater';
 import Onboarding from './components/Onboarding';
 import FloatingPlayer from './components/FloatingPlayer';
 
 function LayoutEngine() {
   const location = useLocation();
-  const isZen = location.pathname === '/';
+  const isHome = location.pathname === '/';
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="bg-background text-on-surface font-sans min-h-screen flex flex-col selection:bg-primary/30 transition-colors duration-300">
-      <Navbar isZen={isZen} />
-      {!isZen && <Sidebar />}
+      <Navbar isHome={isHome} toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
       
-      <div className={`${!isZen ? 'md:pl-64' : ''}`}>
-        <main className={`w-full pt-16 min-h-screen ${isZen ? '' : 'bg-background'}`}>
+      {!isHome && (
+        <>
+          <Sidebar isOpen={isMobileMenuOpen} closeMenu={() => setIsMobileMenuOpen(false)} />
+          {/* Mobile Overlay */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <div 
+                onClick={() => setIsMobileMenuOpen(false)} 
+                className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-sm"
+              />
+            )}
+          </AnimatePresence>
+        </>
+      )}
+      
+      <div className={`${!isHome ? 'md:pl-64' : ''}`}>
+        <main className={`w-full pt-16 min-h-screen ${isHome ? '' : 'bg-background'}`}>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<Home />} />
               <Route path="/studio" element={<Studio />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/library" element={<Library />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -39,8 +61,10 @@ function LayoutEngine() {
       </div>
       
       <FloatingPlayer />
+      
       <SettingsModal />
-      <LoginModal />
+      <AuthModal />
+      <ProfileModal />
       <PwaUpdater />
       <Onboarding />
     </div>

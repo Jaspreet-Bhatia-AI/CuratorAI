@@ -1,21 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAppContext } from '../context/AppContext';
 
 export default function FloatingPlayer() {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { currentTrack, isPlaying, togglePlay } = useAppContext();
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef(null);
 
   useEffect(() => {
-    let interval;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setProgress(p => (p > 100 ? 0 : p + 0.5));
-      }, 1000);
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.play().catch(e => console.error("Playback error:", e));
+      } else {
+        audioRef.current.pause();
+      }
     }
-    return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, currentTrack]);
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      const cur = audioRef.current.currentTime;
+      const dur = audioRef.current.duration;
+      setCurrentTime(cur);
+      setDuration(dur);
+      if (dur > 0) {
+        setProgress((cur / dur) * 100);
+      }
+    }
+  };
+
+  const handleSeek = (e) => {
+    if (audioRef.current && duration > 0) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      audioRef.current.currentTime = pos * duration;
+    }
+  };
+
+  const formatTime = (time) => {
+    if (isNaN(time)) return "00:00";
+    const min = Math.floor(time / 60);
+    const sec = Math.floor(time % 60);
+    return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  if (!currentTrack) return null;
 
   return (
     <div className="fixed bottom-6 inset-x-0 mx-auto w-11/12 max-w-5xl z-50">
+      {currentTrack.source === 'server' && (
+        <audio 
+          ref={audioRef} 
+          src={`/api/stream/${encodeURIComponent(currentTrack.filename)}`} 
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={() => togglePlay()}
+        />
+      )}
+      
       <div className="bg-surface-container-lowest/85 backdrop-blur-2xl shadow-[0_20px_45px_-10px_rgba(15,23,42,0.18)] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
         
         {/* Left Section */}
@@ -24,8 +66,12 @@ export default function FloatingPlayer() {
             <span className="material-symbols-outlined text-white text-[24px]">graphic_eq</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-label-md text-label-md text-on-surface font-semibold truncate">Neural Soundscape #04 (Latent Field A)</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant truncate">High-Res Audio • 24-bit 48kHz</span>
+            <span className="font-label-md text-label-md text-on-surface font-semibold truncate" title={currentTrack.filename}>
+              {currentTrack.filename.replace('.mp3', '')}
+            </span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
+              {currentTrack.size} • {currentTrack.category}
+            </span>
           </div>
           <button className="text-on-surface-variant hover:text-secondary transition-colors shrink-0 ml-auto md:ml-2">
             <span className="material-symbols-outlined text-[20px]">favorite</span>
@@ -42,7 +88,7 @@ export default function FloatingPlayer() {
               <span className="material-symbols-outlined text-[22px]">skip_previous</span>
             </button>
             <button 
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={togglePlay}
               className="bg-gradient-to-r from-primary to-secondary text-on-primary w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
             >
               <span className="material-symbols-outlined text-[22px]">{isPlaying ? 'pause' : 'play_arrow'}</span>
@@ -57,14 +103,16 @@ export default function FloatingPlayer() {
           
           <div className="flex items-center gap-2 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant font-mono w-10 text-right">
-              00:{Math.floor(progress).toString().padStart(2, '0')}
+              {formatTime(currentTime)}
             </span>
-            <div className="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden relative cursor-pointer group">
+            <div className="flex-1 h-1.5 bg-surface-container-high rounded-full overflow-hidden relative cursor-pointer group" onClick={handleSeek}>
               <div className="bg-gradient-to-r from-primary to-secondary h-full rounded-full relative" style={{ width: `${progress}%` }}>
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-surface-container-lowest rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
             </div>
-            <span className="font-label-sm text-label-sm text-on-surface-variant font-mono w-10">05:12</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant font-mono w-10">
+              {formatTime(duration)}
+            </span>
           </div>
         </div>
         
