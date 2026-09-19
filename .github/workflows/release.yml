@@ -1,0 +1,66 @@
+name: "Release"
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-22.04, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+        
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+          
+      - name: Install Frontend Dependencies
+        run: cd frontend && npm install
+
+      - name: Download yt-dlp Sidecars
+        shell: bash
+        run: |
+          mkdir -p frontend/src-tauri/binaries
+          cd frontend/src-tauri/binaries
+          
+          # Linux
+          curl -L "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp" -o "yt-dlp-x86_64-unknown-linux-gnu"
+          chmod +x yt-dlp-x86_64-unknown-linux-gnu
+          
+          # macOS
+          curl -L "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos" -o "yt-dlp-x86_64-apple-darwin"
+          chmod +x yt-dlp-x86_64-apple-darwin
+          cp yt-dlp-x86_64-apple-darwin yt-dlp-aarch64-apple-darwin
+          
+          # Windows
+          curl -L "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -o "yt-dlp-x86_64-pc-windows-msvc.exe"
+
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: "./frontend"
+          tagName: v__VERSION__
+          releaseName: "Curator AI v__VERSION__"
+          releaseBody: "See the assets below to download this version for Windows, Mac, and Linux."
+          releaseDraft: false
+          prerelease: false
