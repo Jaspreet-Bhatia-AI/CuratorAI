@@ -2,16 +2,16 @@
 
 Transform any topic, artist, or vibe into a structured learning path or a curated music mix in seconds. Curator AI is a **100% free, decentralized desktop app** that sits at the intersection of AI generation and direct-to-device media downloading.
 
-## 🚀 Download for Windows, Mac, and Linux
+## 🚀 Direct Downloads
 
-You no longer need to host a server or use Docker. The entire app runs natively on your computer!
+| Operating System | Installer Type | Download Link |
+|:---|:---|:---|
+| 🪟 **Windows** | `.msi` or `.exe` | [👉 Download Latest Release](https://github.com/your-username/curator-ai/releases/latest) |
+| 🍎 **macOS** | `.dmg` | [👉 Download Latest Release](https://github.com/your-username/curator-ai/releases/latest) |
+| 🐧 **Linux** | `.AppImage` or `.deb` | [👉 Download Latest Release](https://github.com/your-username/curator-ai/releases/latest) |
+| 🤖 **Android** | `.apk` | *(Mobile App Support Coming Soon!)* |
 
-1. Go to the [Releases Tab](../../releases) on this GitHub page.
-2. Download the installer for your operating system:
-   - **Windows:** Download the `.msi` or `.exe`
-   - **Mac:** Download the `.dmg`
-   - **Linux:** Download the `.AppImage` or `.deb`
-3. Install and run it!
+> **Note:** Click the link above to view the latest versions. Under the **Assets** section of the latest release, click the installer file that matches your operating system.
 
 ## ✨ Features
 - **Bring Your Own API Key:** Uses your personal Gemini or Groq keys for completely free, unlimited AI generations.
