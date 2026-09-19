@@ -4,7 +4,7 @@ import { supabase } from "../utils/supabase";
 import { saveSongToLibrary } from '../utils/db';
 import { saveFileToDisk } from '../utils/fs';
 import { motion } from 'framer-motion';
-import { invoke } from '@tauri-apps/api/core';
+
 
 const formatDuration = (secs) => {
   if (!secs) return "00:00";
@@ -77,14 +77,29 @@ export default function MediaGrid({ items }) {
       const controller = new AbortController();
       abortControllers.current[item.url] = controller;
 
-      const safeTitle = item.title.replace(/[^a-zA-Z0-9 ]/g, '').trim();
-      const ext = format.includes('video') ? 'mp4' : 'mp3';
-      const filename = `${safeTitle}.${ext}`;
-      
-      await invoke('download_media', { 
-        youtube_url: item.url, 
-        download_path: filename 
+      const response = await fetch('/api/download-audio', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: item.url, format: format }),
+        signal: controller.signal
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to download media');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${item.title.replace(/[^a-zA-Z0-9 ]/g, '')}.${format === 'mp3' ? 'mp3' : 'mp4'}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
 
       // Save metadata to internal library (WITHOUT the massive blob payload to save DB space)
       await saveSongToLibrary({

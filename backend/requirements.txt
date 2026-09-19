@@ -1,0 +1,12 @@
+yt-dlp
+streamlit
+groq
+python-dotenv
+nodeenv
+curl-cffi
+secretstorage
+keyring
+fastapi
+uvicorn
+websockets
+python-multipart

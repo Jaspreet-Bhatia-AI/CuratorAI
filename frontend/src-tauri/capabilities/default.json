@@ -7,10 +7,6 @@
   ],
   "permissions": [
     "core:default",
-    "shell:default",
-    {
-      "identifier": "shell:allow-execute",
-      "allow": [{ "name": "binaries/yt-dlp", "sidecar": true }]
-    }
+    "shell:default"
   ]
 }
