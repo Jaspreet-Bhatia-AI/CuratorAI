@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 import { load } from '@tauri-apps/plugin-store';
+import { supabase } from '../utils/supabase';
 
 const AppContext = createContext();
 
@@ -42,32 +43,60 @@ export function AppProvider({ children }) {
     setSearchQuery(query);
 
     try {
-      // Safely use the awaited keys from the Tauri store
+      const { data: cachedData } = await supabase
+        .from('queries_cache')
+        .select('json_data')
+        .eq('query_text', query.toLowerCase())
+        .single();
+        
+      let payload;
+
+      if (cachedData && cachedData.json_data) {
+        payload = cachedData.json_data;
+      } else {
+        // Safely use the awaited keys from the Tauri store
         const activeGroq = groqKey;
         const activeGemini = geminiKey;
         const finalProvider = activeGroq ? 'groq' : 'gemini';
         const finalKey = activeGroq || activeGemini || '';
 
         const res = await fetch('/api/generate-roadmap', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-AI-Provider': finalProvider,
-          'X-AI-Key': finalKey.trim()
-        },
-        body: JSON.stringify({ query: query, user_email: user?.email || null }),
-      });
-      if (!res.ok) {
-        let errStr = "Failed to fetch roadmap";
-        try {
-          const errData = await res.json();
-          errStr = errData.detail || errStr;
-        } catch (e) {}
-        throw new Error(errStr);
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-AI-Provider': finalProvider,
+            'X-AI-Key': finalKey.trim()
+          },
+          body: JSON.stringify({ query: query, user_email: user?.email || null }),
+        });
+        if (!res.ok) {
+          let errStr = "Failed to fetch roadmap";
+          try {
+            const errData = await res.json();
+            errStr = errData.detail || errStr;
+          } catch (e) {}
+          throw new Error(errStr);
+        }
+
+        const data = await res.json();
+        payload = data.data || data; 
+        
+        // Save to cache
+        await supabase
+          .from('queries_cache')
+          .insert([{ query_text: query.toLowerCase(), json_data: payload }]);
+      }
+      
+      if (user?.email) {
+        await supabase
+          .from('user_history')
+          .insert([{ 
+             user_email: user.email, 
+             query: query, 
+             roadmap: payload 
+          }]);
       }
 
-      const data = await res.json();
-      const payload = data.data || data; 
       setRoadmap(payload);
       setCurriculum(payload.curriculum || []);
       if (payload.roadmap_overview?.length > 0) {

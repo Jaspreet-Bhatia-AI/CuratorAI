@@ -15,7 +15,6 @@ import { AuthProvider } from './context/AuthContext';
 import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import ProfileModal from './components/ProfileModal';
-import PwaUpdater from './components/PwaUpdater';
 import Onboarding from './components/Onboarding';
 import FloatingPlayer from './components/FloatingPlayer';
 import InteractiveGrid from './components/InteractiveGrid';
@@ -69,7 +68,6 @@ function LayoutEngine() {
       <SettingsModal />
       <AuthModal />
       <ProfileModal />
-      <PwaUpdater />
       <Onboarding />
     </div>
   );

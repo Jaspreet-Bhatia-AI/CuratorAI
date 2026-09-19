@@ -4,6 +4,7 @@ import { supabase } from "../utils/supabase";
 import { saveSongToLibrary } from '../utils/db';
 import { saveFileToDisk } from '../utils/fs';
 import { motion } from 'framer-motion';
+import { invoke } from '@tauri-apps/api/core';
 
 const formatDuration = (secs) => {
   if (!secs) return "00:00";
@@ -76,29 +77,14 @@ export default function MediaGrid({ items }) {
       const controller = new AbortController();
       abortControllers.current[item.url] = controller;
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const res = await fetch('/api/download-audio', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
-        },
-        body: JSON.stringify({ url: item.url, format }),
-        signal: controller.signal
-      });
-      
-      if (!res.ok) throw new Error("Download failed on server");
-      
-      const rawBlob = await res.blob();
-      const blob = new Blob([rawBlob], { type: format.includes('video') ? 'video/mp4' : 'audio/mpeg' });
-      
       const safeTitle = item.title.replace(/[^a-zA-Z0-9 ]/g, '').trim();
       const ext = format.includes('video') ? 'mp4' : 'mp3';
       const filename = `${safeTitle}.${ext}`;
       
-      // Prompt user to select downloads folder and save directly to OS!
-      await saveFileToDisk(filename, blob);
+      await invoke('download_media', { 
+        youtube_url: item.url, 
+        download_path: filename 
+      });
 
       // Save metadata to internal library (WITHOUT the massive blob payload to save DB space)
       await saveSongToLibrary({

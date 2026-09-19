@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { motion } from 'framer-motion';
+import { supabase } from '../utils/supabase';
 
 export default function History() {
   const { user } = useAuth();
@@ -16,12 +17,15 @@ export default function History() {
       setLoading(false);
       return;
     }
-    fetch(`/api/history?email=${encodeURIComponent(user.email)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setHistory(data.data);
-        }
+    
+    supabase
+      .from('user_history')
+      .select('*')
+      .eq('user_email', user.email)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) throw error;
+        setHistory(data || []);
         setLoading(false);
       })
       .catch(err => {

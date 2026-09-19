@@ -33,16 +33,12 @@ export default function Library() {
 
   const loadCloudMedia = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch('/api/cloud-media', {
-        headers: {
-          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
-        }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        setCloudMedia(json.data || []);
-      }
+      const { data, error } = await supabase
+        .from('media_metadata')
+        .select('*');
+        
+      if (error) throw error;
+      setCloudMedia(data || []);
     } catch (e) {
       console.error(e);
       toast.error('Failed to load cloud media');
@@ -242,7 +238,7 @@ export default function Library() {
               <button 
                 onClick={() => {
                   toast.success("Syncing with cloud server...");
-                  fetchCloudMedia();
+                  loadCloudMedia();
                 }}
                 className="flex items-center gap-2 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors"
               >
