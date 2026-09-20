@@ -9,7 +9,7 @@ export default function Navbar({ isHome, toggleMobileMenu }) {
   const { user, setIsLoginModalOpen, setIsProfileModalOpen, isDarkMode, toggleTheme } = useAuth();
 
   return (
-    <header className={`fixed top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] transition-all ${isHome ? 'w-full' : 'left-0 md:left-64 right-0'}`}>
+    <header className={`fixed top-0 z-40 bg-surface-container-lowest shadow-sm transition-all ${isHome ? 'w-full' : 'left-0 md:left-64 right-0'}`}>
       <div className={`h-16 w-full px-4 lg:px-6 flex items-center justify-between gap-4 ${isHome ? 'lg:px-12' : ''}`}>
         
         {/* Left side: Hamburger (Mobile) + Logo */}
@@ -17,41 +17,41 @@ export default function Navbar({ isHome, toggleMobileMenu }) {
           {!isHome && (
             <button 
               onClick={toggleMobileMenu} 
-              className="p-1 -ml-2 rounded-full text-on-surface hover:bg-surface-container transition-colors md:hidden"
+              className="w-12 h-12 rounded-full flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors md:hidden"
             >
               <span className="material-symbols-outlined text-[24px]">menu</span>
             </button>
           )}
           <Link to="/" className="flex items-center gap-3" onClick={() => { if(setRoadmap) { setRoadmap(null); setSearchQuery(""); } }}>
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
-              C
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm">
+              <span className="material-symbols-outlined text-[20px]">architecture</span>
             </div>
             <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight hidden sm:inline-block">
-              Curator AI
+              Curator <span className="text-primary font-medium">AI</span>
             </span>
           </Link>
         </div>
 
         {/* Center Search */}
         {!isHome ? (
-          <div className="flex items-center w-full max-w-md px-4 py-1 rounded-full bg-surface-container-low text-on-surface-variant shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]" id="tour-search">
-            <span className="material-symbols-outlined text-[18px] mr-2">search</span>
+          <div className="flex items-center w-full max-w-md px-4 py-2 rounded-full bg-surface-container text-on-surface-variant" id="tour-search">
+            <span className="material-symbols-outlined text-[20px] mr-2">search</span>
             <input 
               className="bg-transparent flex-1 font-body-sm text-body-sm focus:outline-none text-on-surface w-full min-w-0"
               placeholder="Search Roadmap..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-surface-container-lowest text-on-surface font-label-sm text-[10px] shadow-sm ml-2 shrink-0">⌘K</kbd>
+            <kbd className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-[10px] ml-2 shrink-0">⌘K</kbd>
           </div>
         ) : <div className="flex-1" />}
 
         {/* Center Nav Links (Hidden on small screens) */}
-        <nav className="hidden xl:flex items-center gap-1 bg-surface-container-low p-1 rounded-full">
-          <Link to="/" className={`px-4 py-1 font-label-md text-label-md rounded-full transition-all ${location.pathname === '/' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`} onClick={() => { if(setRoadmap) { setRoadmap(null); setSearchQuery(""); } }}>
+        <nav className="hidden xl:flex items-center gap-1 bg-surface-container p-1 rounded-full">
+          <Link to="/" className={`px-4 py-2 font-label-md text-label-md rounded-full transition-all ${location.pathname === '/' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`} onClick={() => { if(setRoadmap) { setRoadmap(null); setSearchQuery(""); } }}>
             Home
           </Link>
-          <Link to="/library" className={`px-4 py-1 font-label-md text-label-md rounded-full transition-all ${location.pathname === '/library' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`}>
+          <Link to="/library" className={`px-4 py-2 font-label-md text-label-md rounded-full transition-all ${location.pathname === '/library' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`}>
             Library
           </Link>
         </nav>

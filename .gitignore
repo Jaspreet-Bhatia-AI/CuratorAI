@@ -35,3 +35,4 @@ backend/downloads/
 Thumbs.db
 backend/history.db
 backend/cloud_library/
+downloads/*.apk

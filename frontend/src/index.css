@@ -170,3 +170,13 @@ body {
   .text-label-sm { font-size: 11px; line-height: 16px; letter-spacing: 0.5px; }
   .font-label-sm { font-weight: 500; }
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

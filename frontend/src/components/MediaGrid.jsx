@@ -231,10 +231,10 @@ export default function MediaGrid({ items }) {
           return (
             <motion.article 
               variants={itemVariants} 
-              whileHover={{ y: -8, scale: 1.02 }}
+              whileHover={{ y: -4, scale: 1.01 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               key={idx} 
-              className={`flex flex-col bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/20 transition-all border-2 ${isSelected ? 'border-primary' : 'border-transparent'}`}
+              className={`flex flex-col bg-surface-container-low rounded-[28px] overflow-hidden shadow-sm hover:shadow-md transition-all border-2 ${isSelected ? 'border-primary' : 'border-transparent'}`}
             >
               <div className="relative aspect-video w-full bg-surface-container overflow-hidden group cursor-pointer" onClick={() => toggleSelect(item.url)}>
                 <img 
@@ -242,81 +242,80 @@ export default function MediaGrid({ items }) {
                   alt={item.title} 
                   src={item.thumbnail || `https://picsum.photos/seed/${idx + item.title}/640/360`} 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-on-background/80 via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-on-background/80 via-transparent to-transparent opacity-70"></div>
                 
-                <div className="absolute top-3 left-3 z-10 pointer-events-none">
-                  <div className={`w-6 h-6 rounded flex items-center justify-center border shadow-sm transition-all ${isSelected ? 'bg-primary border-primary' : 'bg-surface-container-lowest/80 border-outline backdrop-blur-md'}`}>
-                     {isSelected && <span className="material-symbols-outlined text-[18px] text-on-primary">check</span>}
+                <div className="absolute top-4 left-4 z-10 pointer-events-none">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm transition-all ${isSelected ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest/80 text-on-surface backdrop-blur-md'}`}>
+                     {isSelected && <span className="material-symbols-outlined text-[18px]">check</span>}
                   </div>
                 </div>
                 
-                <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-on-background/80 text-background font-label-sm text-label-sm backdrop-blur-sm">
+                <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-on-background/80 text-background font-label-md backdrop-blur-sm">
                   {formatDuration(item.duration)}
                 </div>
               </div>
               
-              <div className="p-4 flex flex-col flex-1 justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <h2 className="font-headline-sm text-headline-sm text-on-surface line-clamp-2" title={item.title}>
+              <div className="p-5 flex flex-col flex-1 justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                  <h2 className="font-headline-sm text-[20px] text-on-surface line-clamp-2 leading-tight" title={item.title}>
                     {item.title}
                   </h2>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 leading-snug">
-                    <span className="font-semibold">{item.channel || "YouTube"}</span>
+                  <p className="font-body-md text-on-surface-variant line-clamp-2 leading-snug opacity-80">
+                    <span className="font-medium">{item.channel || "YouTube"}</span>
                     <br/>
                     {item.views ? item.views.toLocaleString() : "0"} views
                     {item.upload_date && ` • ${item.upload_date}`}
-                    {item.likes && ` • 👍 ${item.likes.toLocaleString()}`}
                   </p>
                   {rationale && (
-                    <div className="mt-3 flex gap-2 items-start bg-secondary-container/30 p-2.5 rounded-xl border border-secondary/10">
-                      <span className="material-symbols-outlined text-[16px] text-secondary mt-0.5">auto_awesome</span>
-                      <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-3 leading-relaxed">
+                    <div className="mt-2 flex gap-3 items-start bg-secondary-container/50 p-3 rounded-2xl">
+                      <span className="material-symbols-outlined text-[18px] text-on-secondary-container mt-0.5">auto_awesome</span>
+                      <p className="font-body-sm text-on-secondary-container line-clamp-3 leading-relaxed">
                         {rationale}
                       </p>
                     </div>
                   )}
                 </div>
                 
-                <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/30 mt-1">
+                <div className="flex flex-col gap-2 pt-3 mt-1">
                   {isDownloading ? (
-                    <div className="p-2.5 rounded-xl bg-surface-container-low flex flex-col gap-2 border border-primary/20">
+                    <div className="p-3 rounded-2xl bg-surface-container-high flex flex-col gap-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-primary">
-                          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          <span className="font-label-sm text-label-sm font-semibold">Downloading...</span>
+                          <span className="font-label-lg font-medium">Downloading...</span>
                         </div>
                         <button 
                           onClick={() => cancelDownload(item.url)}
-                          className="w-6 h-6 rounded-full hover:bg-error/10 text-error flex items-center justify-center transition-colors"
+                          className="w-8 h-8 rounded-full hover:bg-error-container text-error flex items-center justify-center transition-colors"
                           title="Cancel Download"
                         >
-                          <span className="material-symbols-outlined text-[16px]">close</span>
+                          <span className="material-symbols-outlined text-[20px]">close</span>
                         </button>
                       </div>
-                      <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-primary to-secondary rounded-full animate-pulse w-3/4"></div>
+                      <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                        <div className="h-full bg-primary rounded-full animate-pulse w-3/4"></div>
                       </div>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
                       <select 
-                        className="bg-surface-container-low text-on-surface border border-outline-variant rounded-xl px-3 py-2 text-sm font-label-md focus:outline-none focus:border-primary flex-1 min-w-0 cursor-pointer shadow-sm hover:bg-surface-container transition-colors"
+                        className="bg-surface-container-highest text-on-surface border-none rounded-full px-4 py-3 text-sm font-label-lg focus:outline-none focus:ring-2 focus:ring-primary/50 flex-1 min-w-0 cursor-pointer transition-colors"
                         value={currentFormat}
                         onChange={(e) => handleFormatChange(item.url, e.target.value)}
                       >
                         <option value="mp3">Audio Only</option>
-                        <option value="720p">720p (Faster Download)</option>
-                        <option value="1080p">1080p+ (Better Quality, Slower)</option>
+                        <option value="720p">720p</option>
+                        <option value="1080p">1080p+</option>
                       </select>
                       <button 
                         onClick={() => handleDownload(item)}
-                        className="bg-primary hover:opacity-90 text-on-primary rounded-xl py-2 px-4 flex items-center justify-center transition-all shadow-sm active:scale-[0.98]"
+                        className="bg-primary hover:bg-primary/90 text-on-primary rounded-full w-12 h-12 flex items-center justify-center transition-all shadow-sm active:scale-[0.95]"
                         title="Download"
                       >
-                        <span className="material-symbols-outlined text-[20px]">download</span>
+                        <span className="material-symbols-outlined text-[24px]">download</span>
                       </button>
                     </div>
                   )}

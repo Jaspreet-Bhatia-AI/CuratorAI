@@ -11,25 +11,26 @@ import NotFound from './pages/NotFound';
 import { Toaster } from 'react-hot-toast';
 import { AppProvider } from './context/AppContext';
 import Profile from "./pages/Profile";
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import ProfileModal from './components/ProfileModal';
 import Onboarding from './components/Onboarding';
 import FloatingPlayer from './components/FloatingPlayer';
-import InteractiveGrid from './components/InteractiveGrid';
+import BottomNav from './components/BottomNav';
 
 function LayoutEngine() {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, setIsLoginModalOpen, setIsProfileModalOpen } = useAuth();
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
   return (
-    <div className="bg-background text-on-surface font-sans min-h-screen flex flex-col selection:bg-primary/30 transition-colors duration-300">
+    <div className="bg-background text-on-surface font-sans min-h-screen flex flex-col selection:bg-primary/30 transition-colors duration-300 pb-[72px] md:pb-0">
       <Navbar isHome={isHome} toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
       
       {!isHome && (
@@ -50,10 +51,10 @@ function LayoutEngine() {
       <div className={`${!isHome ? 'md:pl-64' : ''}`}>
         <main className={`w-full pt-16 min-h-screen ${isHome ? '' : 'bg-background'}`}>
           <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>              <Route path="/" element={<Home />} />
+            <Routes location={location} key={location.pathname}>              
+              <Route path="/" element={<Home />} />
               <Route path="/studio" element={<Navigate to="/" replace />} />
               <Route path="/roadmap" element={<Navigate to="/" replace />} />
-              
               <Route path="/profile" element={<Profile />} />
               <Route path="/library" element={<Library />} />
               <Route path="*" element={<NotFound />} />
@@ -62,7 +63,11 @@ function LayoutEngine() {
         </main>
       </div>
       
-      <InteractiveGrid />
+      <BottomNav 
+        user={user} 
+        openAuthModal={() => setIsLoginModalOpen(true)} 
+        openProfileModal={() => setIsProfileModalOpen(true)} 
+      />
       <FloatingPlayer />
       
       <SettingsModal />
