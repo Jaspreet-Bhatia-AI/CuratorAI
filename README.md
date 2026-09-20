@@ -6,12 +6,12 @@ Transform any topic, artist, or vibe into a structured learning path or a curate
 
 | Operating System | Installer Type | Download Link |
 |:---|:---|:---|
-| 🪟 **Windows** | `.msi` or `.exe` | [👉 Download Latest Release](https://github.com/your-username/curator-ai/releases/latest) |
-| 🍎 **macOS** | `.dmg` | [👉 Download Latest Release](https://github.com/your-username/curator-ai/releases/latest) |
-| 🐧 **Linux** | `.AppImage` or `.deb` | [👉 Download Latest Release](https://github.com/your-username/curator-ai/releases/latest) |
-| 🤖 **Android** | `.apk` | [👉 Download APK](./downloads/app-universal-release.apk) |
+| 🪟 **Windows** | `.msi` or `.exe` | [👉 Download Latest Release](https://github.com/Jaspreet-Bhatia-AI/CuratorAI/releases/latest) |
+| 🍎 **macOS** | `.dmg` | [👉 Download Latest Release](https://github.com/Jaspreet-Bhatia-AI/CuratorAI/releases/latest) |
+| 🐧 **Linux** | `.AppImage` or `.deb` | [👉 Download Latest Release](https://github.com/Jaspreet-Bhatia-AI/CuratorAI/releases/latest) |
+| 🤖 **Android** | `.apk` | [👉 Download Latest Release](https://github.com/Jaspreet-Bhatia-AI/CuratorAI/releases/latest) |
 
-> **Note:** Click the link above to view the latest versions. Desktop apps are in the Releases tab. For Android, download the APK file directly from this repository and install it on your device.
+> **Note:** Click the link above to view the latest versions. Desktop apps are in the Releases tab. For Android, download the `app-universal-release.apk` file from the Assets section and install it on your device.
 
 ## ✨ Features
 - **Bring Your Own API Key:** Uses your personal Gemini or Groq keys for completely free, unlimited AI generations.
