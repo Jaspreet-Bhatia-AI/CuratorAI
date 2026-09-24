@@ -44,3 +44,6 @@ ALTER TABLE user_history ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow users to read own history" ON user_history FOR SELECT TO authenticated USING (auth.uid() = user_id);
 CREATE POLICY "Allow users to insert own history" ON user_history FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
+-- Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_media_metadata_added_by ON media_metadata(added_by);
+CREATE INDEX IF NOT EXISTS idx_user_history_user_id ON user_history(user_id);

@@ -28,16 +28,15 @@ security = HTTPBearer()
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     if not supabase_client:
-        return {"id": "dummy_user", "email": "dev@local"} # Fallback if env vars missing
+        raise HTTPException(status_code=500, detail="Authentication service not configured")
     token = credentials.credentials
     try:
         user_res = supabase_client.auth.get_user(token)
         if not user_res or not user_res.user:
             raise HTTPException(status_code=401, detail="Invalid token")
         return user_res.user
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
-
+    except Exception:
+        raise HTTPException(status_code=401, detail="Authentication failed")
 
 # Configure Rate Limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -68,45 +67,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class RoadmapRequest(BaseModel):
-    query: str
-    user_email: str = None
+from pydantic import Field
 
-from typing import Optional
+class RoadmapRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=500)
+    user_email: Optional[str] = Field(None, max_length=100)
+
 class SearchRequest(BaseModel):
-    search_query: str
-    type: str = "education"
-    original_query: Optional[str] = None
+    search_query: str = Field(..., min_length=1, max_length=200)
+    type: str = Field("education", max_length=20)
+    original_query: Optional[str] = Field(None, max_length=200)
 
 @app.post("/api/generate-roadmap")
 @limiter.limit("5/minute")
-async def generate_roadmap(request: Request, req: RoadmapRequest):
+async def generate_roadmap(request: Request, req: RoadmapRequest, user=Depends(get_current_user)):
     provider = request.headers.get("X-AI-Provider", "groq")
     api_key = request.headers.get("X-AI-Key", "")
     try:
         data = generate_roadmap_json(req.query, provider, api_key)
-        # Save to DB history
         import db
-        db.save_user_history(req.user_email, req.query, data)
+        user_email = user.email if hasattr(user, 'email') else user.get("email")
+        db.save_user_history(user_email, req.query, data)
         return {"success": True, "data": data}
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 
 @app.get("/api/history")
-async def get_history(email: str = None):
-    if not email:
+@limiter.limit("10/minute")
+async def get_history(request: Request, user=Depends(get_current_user)):
+    user_email = user.email if hasattr(user, 'email') else user.get("email")
+    if not user_email:
         return {"success": True, "data": []}
     import db
-    data = db.get_user_history(email)
+    data = db.get_user_history(user_email)
     return {"success": True, "data": data}
 
 @app.post("/api/search")
 @limiter.limit("30/minute")
-async def search_video(request: Request, req: SearchRequest):
+async def search_video(request: Request, req: SearchRequest, user=Depends(get_current_user)):
     result = await asyncio.to_thread(search_youtube, req.search_query, req.type, req.original_query)
     if result:
         return {"success": True, "data": result}
@@ -128,8 +130,8 @@ from concurrent.futures import ThreadPoolExecutor
 batch_jobs = {}
 
 class BatchPrepareRequest(BaseModel):
-    urls: list[str]
-    format: str = "audio"
+    urls: list[str] = Field(..., max_items=20)
+    format: str = Field("audio", max_length=20)
 
 def cleanup_batch_files(paths: list[str]):
     time.sleep(10) # buffer to ensure FileResponse finishes streaming
@@ -139,14 +141,14 @@ def cleanup_batch_files(paths: list[str]):
 
 @app.post("/api/batch-prepare")
 @limiter.limit("5/minute")
-async def batch_prepare(request: Request, req: BatchPrepareRequest):
+async def batch_prepare(request: Request, req: BatchPrepareRequest, user=Depends(get_current_user)):
     batch_id = uuid.uuid4().hex
     batch_jobs[batch_id] = {"urls": req.urls, "format": req.format}
     return {"success": True, "batch_id": batch_id}
 
 @app.get("/api/batch-download")
 @limiter.limit("5/minute")
-async def batch_download(request: Request, background_tasks: BackgroundTasks, batch_id: str, task_id: str = None):
+async def batch_download(request: Request, background_tasks: BackgroundTasks, batch_id: str, task_id: str = None, user=Depends(get_current_user)):
     if batch_id not in batch_jobs:
         raise HTTPException(status_code=404, detail="Batch job not found")
         
@@ -198,13 +200,13 @@ async def batch_download(request: Request, background_tasks: BackgroundTasks, ba
 
 @app.get("/api/progress")
 @limiter.limit("60/minute")
-async def get_progress(request: Request, task_id: str):
+async def get_progress(request: Request, task_id: str, user=Depends(get_current_user)):
     return DOWNLOAD_PROGRESS.get(task_id, {"status": "waiting", "percent": "0%"})
 
 
 class DownloadRequest(BaseModel):
-    url: str
-    format: str = "audio"
+    url: str = Field(..., max_length=500)
+    format: str = Field("audio", max_length=20)
 
 from compressor import compress_media_background
 
@@ -248,7 +250,7 @@ async def download_audio_endpoint(request: Request, req: DownloadRequest, backgr
 
 @app.get("/api/download")
 @limiter.limit("50/minute")
-async def download_endpoint(request: Request, url: str, background_tasks: BackgroundTasks, format: str = "video_high", task_id: str = None):
+async def download_endpoint(request: Request, url: str, background_tasks: BackgroundTasks, format: str = "video_high", task_id: str = None, user=Depends(get_current_user)):
     if not is_valid_youtube_url(url):
         raise HTTPException(status_code=400, detail="Invalid YouTube URL")
         
@@ -273,7 +275,7 @@ async def download_endpoint(request: Request, url: str, background_tasks: Backgr
 
 @app.get("/api/local-files")
 @limiter.limit("60/minute")
-async def list_local_files(request: Request):
+async def list_local_files(request: Request, user=Depends(get_current_user)):
     download_dir = os.path.join(os.getcwd(), "temp_downloads")
     if not os.path.exists(download_dir):
         return {"success": True, "files": []}
@@ -296,9 +298,13 @@ async def list_local_files(request: Request):
 
 @app.get("/api/stream/{filename:path}")
 @limiter.limit("120/minute")
-async def stream_file(request: Request, filename: str):
-    download_dir = os.path.join(os.getcwd(), "temp_downloads")
-    filepath = os.path.join(download_dir, filename)
+async def stream_file(request: Request, filename: str, user=Depends(get_current_user)):
+    if ".." in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    download_dir = os.path.abspath(os.path.join(os.getcwd(), "temp_downloads"))
+    filepath = os.path.abspath(os.path.join(download_dir, filename))
+    if not filepath.startswith(download_dir):
+        raise HTTPException(status_code=403, detail="Access denied")
     if not os.path.exists(filepath):
         raise HTTPException(status_code=404, detail="File not found")
     
@@ -317,7 +323,8 @@ if __name__ == "__main__":
 CLOUD_LIBRARY_DIR = os.path.join(os.path.dirname(__file__), "cloud_library")
 
 @app.get("/api/cloud-media")
-async def list_cloud_media(user=Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def list_cloud_media(request: Request, user=Depends(get_current_user)):
     """Lists all media permanently stored on the Laptop Server"""
     audio_dir = os.path.join(CLOUD_LIBRARY_DIR, "audio")
     video_dir = os.path.join(CLOUD_LIBRARY_DIR, "video")
@@ -349,10 +356,14 @@ async def list_cloud_media(user=Depends(get_current_user)):
     return {"success": True, "data": media}
 
 @app.get("/api/cloud-media/stream/{media_type}/{filename}")
-async def stream_cloud_media(media_type: str, filename: str):
+@limiter.limit("120/minute")
+async def stream_cloud_media(request: Request, media_type: str, filename: str, user=Depends(get_current_user)):
     """Streams the file from the Laptop Server directly to the user's offline app"""
     if media_type not in ["audio", "video"]:
         raise HTTPException(status_code=400, detail="Invalid media type")
+        
+    if ".." in filename or "/" in filename or "\" in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
         
     file_path = os.path.join(CLOUD_LIBRARY_DIR, media_type, filename)
     if not os.path.exists(file_path):

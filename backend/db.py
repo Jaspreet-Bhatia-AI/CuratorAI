@@ -25,6 +25,7 @@ def init_db():
             metadata_json TEXT
         )
     ''')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_user_history_email ON user_history(user_email)')
     conn.commit()
     conn.close()
 

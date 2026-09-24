@@ -1,0 +1,78 @@
+:root {
+  /* Sleek Modern Blue Palette */
+  --color-primary: #2563eb;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #dbeafe;
+  --color-on-primary-container: #1e3a8a;
+  
+  --color-secondary: #4f46e5;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e0e7ff;
+  --color-on-secondary-container: #312e81;
+  
+  --color-tertiary: #0ea5e9;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #e0f2fe;
+  --color-on-tertiary-container: #0c4a6e;
+  
+  --color-error: #dc2626;
+  --color-on-error: #ffffff;
+  --color-error-container: #fee2e2;
+  --color-on-error-container: #991b1b;
+  
+  --color-background: #f8fafc;
+  --color-on-background: #0f172a;
+  
+  --color-surface: #ffffff;
+  --color-on-surface: #0f172a;
+  --color-surface-variant: #f1f5f9;
+  --color-on-surface-variant: #475569;
+  
+  --color-outline: #cbd5e1;
+  --color-outline-variant: #e2e8f0;
+  
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f8fafc;
+  --color-surface-container: #f1f5f9;
+  --color-surface-container-high: #e2e8f0;
+  --color-surface-container-highest: #cbd5e1;
+}
+
+.dark {
+  --color-primary: #3b82f6;
+  --color-on-primary: #eff6ff;
+  --color-primary-container: #1d4ed8;
+  --color-on-primary-container: #bfdbfe;
+  
+  --color-secondary: #6366f1;
+  --color-on-secondary: #eef2ff;
+  --color-secondary-container: #4338ca;
+  --color-on-secondary-container: #c7d2fe;
+  
+  --color-tertiary: #0ea5e9;
+  --color-on-tertiary: #f0f9ff;
+  --color-tertiary-container: #0369a1;
+  --color-on-tertiary-container: #bae6fd;
+  
+  --color-error: #f87171;
+  --color-on-error: #fef2f2;
+  --color-error-container: #991b1b;
+  --color-on-error-container: #fecaca;
+  
+  --color-background: #0f172a;
+  --color-on-background: #f8fafc;
+  
+  --color-surface: #0f172a;
+  --color-on-surface: #f8fafc;
+  --color-surface-variant: #1e293b;
+  --color-on-surface-variant: #94a3b8;
+  
+  --color-outline: #475569;
+  --color-outline-variant: #334155;
+  
+  --color-surface-container-lowest: #020617;
+  --color-surface-container-low: #0f172a;
+  --color-surface-container: #1e293b;
+  --color-surface-container-high: #334155;
+  --color-surface-container-highest: #475569;
+}

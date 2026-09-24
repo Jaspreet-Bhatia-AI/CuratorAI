@@ -101,7 +101,7 @@ export default function FloatingPlayer() {
         {/* Left Section */}
         <div className="flex items-center gap-4 w-full md:w-1/3 min-w-0">
           <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-md bg-gradient-to-br from-primary via-secondary to-primary-container flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-[24px]">graphic_eq</span>
+            <span className="material-symbols-outlined text-white text-[24px]" aria-hidden="true">graphic_eq</span>
           </div>
           <div className="flex flex-col min-w-0">
             <span className="font-label-md text-label-md text-on-surface font-semibold truncate" title={currentTrack.title || currentTrack.filename}>
@@ -111,31 +111,32 @@ export default function FloatingPlayer() {
               {currentTrack.size ? `${currentTrack.size} • ` : ''} {currentTrack.category || 'Offline Track'}
             </span>
           </div>
-          <button className="text-on-surface-variant hover:text-secondary transition-colors shrink-0 ml-auto md:ml-2">
-            <span className="material-symbols-outlined text-[20px]">favorite</span>
+          <button aria-label="Favorite track" className="text-on-surface-variant hover:text-secondary transition-colors shrink-0 ml-auto md:ml-2">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">favorite</span>
           </button>
         </div>
         
         {/* Center Section (Controls) */}
         <div className="flex flex-col items-center gap-1.5 w-full md:w-5/12">
           <div className="flex items-center gap-4">
-            <button className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-1 rounded-full">
-              <span className="material-symbols-outlined text-[18px]">shuffle</span>
+            <button aria-label="Shuffle" className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-1 rounded-full">
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">shuffle</span>
             </button>
-            <button className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center p-1 rounded-full">
-              <span className="material-symbols-outlined text-[22px]">skip_previous</span>
+            <button aria-label="Skip Previous" className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center p-1 rounded-full">
+              <span className="material-symbols-outlined text-[22px]" aria-hidden="true">skip_previous</span>
             </button>
             <button 
+              aria-label={isPlaying ? 'Pause' : 'Play'}
               onClick={togglePlay}
               className="bg-gradient-to-r from-primary to-secondary text-on-primary w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
             >
-              <span className="material-symbols-outlined text-[22px]">{isPlaying ? 'pause' : 'play_arrow'}</span>
+              <span className="material-symbols-outlined text-[22px]" aria-hidden="true">{isPlaying ? 'pause' : 'play_arrow'}</span>
             </button>
-            <button className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center p-1 rounded-full">
-              <span className="material-symbols-outlined text-[22px]">skip_next</span>
+            <button aria-label="Skip Next" className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center p-1 rounded-full">
+              <span className="material-symbols-outlined text-[22px]" aria-hidden="true">skip_next</span>
             </button>
-            <button className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-1 rounded-full">
-              <span className="material-symbols-outlined text-[18px]">repeat</span>
+            <button aria-label="Repeat" className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-1 rounded-full">
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">repeat</span>
             </button>
           </div>
           

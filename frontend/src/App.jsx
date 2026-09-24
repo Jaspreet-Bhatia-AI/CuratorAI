@@ -18,6 +18,7 @@ import ProfileModal from './components/ProfileModal';
 import Onboarding from './components/Onboarding';
 import FloatingPlayer from './components/FloatingPlayer';
 import BottomNav from './components/BottomNav';
+import CloudSyncManager from './components/CloudSyncManager';
 
 function LayoutEngine() {
   const location = useLocation();
@@ -70,6 +71,7 @@ function LayoutEngine() {
       />
       <FloatingPlayer />
       
+      <CloudSyncManager />
       <SettingsModal />
       <AuthModal />
       <ProfileModal />

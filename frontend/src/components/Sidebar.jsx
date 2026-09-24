@@ -26,8 +26,8 @@ export default function Sidebar({ isOpen, closeMenu }) {
               Curator AI
             </span>
           </Link>
-          <button onClick={closeMenu} className="md:hidden text-on-surface-variant p-1 rounded-full hover:bg-surface-container">
-            <span className="material-symbols-outlined">close</span>
+          <button aria-label="Close sidebar" onClick={closeMenu} className="md:hidden text-on-surface-variant p-1 rounded-full hover:bg-surface-container">
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
         
@@ -62,21 +62,29 @@ export default function Sidebar({ isOpen, closeMenu }) {
       {/* User Status Area */}
       <div className="px-4 flex flex-col gap-3">
         {user ? (
-          <div onClick={() => setIsProfileModalOpen(true)} className="p-4 rounded-2xl bg-surface-container-low flex items-center justify-between shadow-sm cursor-pointer hover:bg-surface-container transition-colors">
+          <button 
+            onClick={() => setIsProfileModalOpen(true)} 
+            aria-label="Open profile modal"
+            className="w-full text-left p-4 rounded-2xl bg-surface-container-low flex items-center justify-between shadow-sm cursor-pointer hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+          >
             <div className="flex items-center gap-3">
               <img alt="Profile" className="w-8 h-8 rounded-full object-cover bg-white" src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} />
               <div className="flex flex-col min-w-0">
-                <span className="font-label-md text-label-md text-on-surface font-semibold truncate">{user.name}</span>
+                <span className="font-label-md text-label-md text-on-surface font-semibold truncate">{user.name || user.user_metadata?.full_name || 'User'}</span>
                 <span className="font-label-sm text-label-[10px] text-on-surface-variant uppercase">Pro Plan</span>
               </div>
             </div>
-            <span className="material-symbols-outlined text-on-surface-variant text-[18px]">verified</span>
-          </div>
+            <span className="material-symbols-outlined text-on-surface-variant text-[18px]" aria-hidden="true">verified</span>
+          </button>
         ) : (
-          <div onClick={() => setIsLoginModalOpen(true)} className="p-4 rounded-2xl bg-primary-container text-on-primary-container flex items-center justify-center shadow-sm cursor-pointer hover:opacity-90 transition-opacity gap-2 font-label-md">
-            <span className="material-symbols-outlined text-[18px]">login</span>
+          <button 
+            onClick={() => setIsLoginModalOpen(true)} 
+            aria-label="Sign in"
+            className="w-full p-4 rounded-2xl bg-primary-container text-on-primary-container flex items-center justify-center shadow-sm cursor-pointer hover:opacity-90 transition-opacity gap-2 font-label-md focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">login</span>
             <span>Sign In to Sync</span>
-          </div>
+          </button>
         )}
       </div>
     </aside>

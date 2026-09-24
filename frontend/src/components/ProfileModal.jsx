@@ -26,9 +26,13 @@ export default function ProfileModal() {
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-transparent" 
             onClick={() => setIsProfileModalOpen(false)}
+            aria-hidden="true"
           />
           
           <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-modal-title"
             initial={{ opacity: 0, scale: 0.95, x: 20, y: -20 }}
             animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, x: 20, y: -20 }}
@@ -44,7 +48,7 @@ export default function ProfileModal() {
                 className="w-20 h-20 rounded-full object-cover shadow-sm bg-white mb-4 border-4 border-surface-container-lowest" 
                 src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} 
               />
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">{user.name}</h3>
+              <h3 id="profile-modal-title" className="font-headline-sm text-headline-sm text-on-surface">{user.name || user.user_metadata?.full_name || 'User'}</h3>
               <p className="font-body-sm text-body-sm text-on-surface-variant">{user.email}</p>
             </div>
 

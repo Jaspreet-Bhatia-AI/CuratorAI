@@ -100,23 +100,32 @@ const handleCheckUpdate = () => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-background/50 backdrop-blur-md transition-opacity" onClick={() => setIsOpen(false)}></div>
+      <div 
+        className="absolute inset-0 bg-background/50 backdrop-blur-md transition-opacity" 
+        onClick={() => setIsOpen(false)}
+        aria-hidden="true"
+      ></div>
       
-      <div className="relative w-full max-w-2xl bg-surface-container-lowest rounded-3xl shadow-[0_24px_60px_-12px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col border border-outline-variant/30 transform transition-all scale-100 opacity-100">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-modal-title"
+        className="relative w-full max-w-2xl bg-surface-container-lowest rounded-3xl shadow-[0_24px_60px_-12px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col border border-outline-variant/30 transform transition-all scale-100 opacity-100"
+      >
         
         {/* Modal Header */}
         <div className="px-6 py-5 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary text-[22px]">api</span>
+              <span className="material-symbols-outlined text-primary text-[22px]" aria-hidden="true">api</span>
             </div>
             <div className="flex flex-col">
-              <h2 className="font-headline-sm text-headline-sm text-on-surface">AI Engine Configuration</h2>
+              <h2 id="settings-modal-title" className="font-headline-sm text-headline-sm text-on-surface">AI Engine Configuration</h2>
               <span className="font-label-sm text-label-sm text-on-surface-variant">BYOK (Bring Your Own Key) Architecture</span>
             </div>
           </div>
-          <button onClick={() => setIsOpen(false)} className="w-8 h-8 rounded-full hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant transition-colors">
-            <span className="material-symbols-outlined text-[20px]">close</span>
+          <button onClick={() => setIsOpen(false)} aria-label="Close modal" className="w-8 h-8 rounded-full hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
           </button>
         </div>
 

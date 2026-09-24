@@ -19,6 +19,14 @@ export default function Library() {
   useEffect(() => {
     loadOfflineMedia();
     loadCloudMedia();
+
+    const handleUpdate = () => {
+      loadOfflineMedia();
+      loadCloudMedia();
+    };
+
+    window.addEventListener('library-updated', handleUpdate);
+    return () => window.removeEventListener('library-updated', handleUpdate);
   }, []);
 
   const loadOfflineMedia = async () => {
