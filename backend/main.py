@@ -362,7 +362,7 @@ async def stream_cloud_media(request: Request, media_type: str, filename: str, u
     if media_type not in ["audio", "video"]:
         raise HTTPException(status_code=400, detail="Invalid media type")
         
-    if ".." in filename or "/" in filename or "\" in filename:
+    if ".." in filename or "/" in filename or "\\" in filename:
         raise HTTPException(status_code=400, detail="Invalid filename")
         
     file_path = os.path.join(CLOUD_LIBRARY_DIR, media_type, filename)
