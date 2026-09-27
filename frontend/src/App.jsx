@@ -19,6 +19,7 @@ import Onboarding from './components/Onboarding';
 import FloatingPlayer from './components/FloatingPlayer';
 import BottomNav from './components/BottomNav';
 import CloudSyncManager from './components/CloudSyncManager';
+import SyncProgressPanel from './components/SyncProgressPanel';
 
 function LayoutEngine() {
   const location = useLocation();
@@ -55,6 +56,7 @@ function LayoutEngine() {
       <FloatingPlayer />
       
       <CloudSyncManager />
+      <SyncProgressPanel />
       <SettingsModal />
       <AuthModal />
       <ProfileModal />

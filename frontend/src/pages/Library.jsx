@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getLibrarySongs, removeSongFromLibrary, saveSongToLibrary } from '../utils/db';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { useSync } from '../context/SyncContext';
 import { supabase } from '../utils/supabase';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +12,9 @@ export default function Library() {
   const [dbSongs, setDbSongs] = useState([]);
   const [cloudMedia, setCloudMedia] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const { startBatchSync } = useSync();
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
+  const [customSyncCount, setCustomSyncCount] = useState('');
   
   const { playTrack, currentTrack, isPlaying, togglePlay } = useAppContext();
   const { user } = useAuth();
@@ -262,16 +266,25 @@ export default function Library() {
               {activeList.length} items
             </span>
             {activeTab === 'cloud' && (
-              <button 
-                onClick={() => {
-                  toast.success("Syncing with cloud server...");
-                  loadCloudMedia();
-                }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors"
-              >
-                <span className="material-symbols-outlined text-[18px]">sync</span>
-                Update Library
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setSyncModalOpen(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-lg font-label-sm hover:bg-secondary hover:text-on-secondary transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">sync_alt</span>
+                  Sync Library
+                </button>
+                <button 
+                  onClick={() => {
+                    toast.success("Syncing with cloud server...");
+                    loadCloudMedia();
+                  }}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">sync</span>
+                  Update Library
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -311,6 +324,66 @@ export default function Library() {
           )}
         </div>
       </div>
+
+      {/* Sync Modal */}
+      {syncModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface-container p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-outline-variant/30">
+            <h3 className="text-xl font-semibold mb-4 text-on-surface">Sync Cloud Library</h3>
+            <p className="text-sm text-on-surface-variant mb-4">Select how many recent items to sync to your device.</p>
+            
+            <div className="flex flex-col gap-2 mb-4">
+              <button 
+                onClick={() => { startBatchSync(cloudMedia, 100); setSyncModalOpen(false); }}
+                className="w-full py-2 bg-primary-container text-on-primary-container rounded-lg hover:bg-primary hover:text-on-primary transition"
+              >
+                Latest 100
+              </button>
+              <button 
+                onClick={() => { startBatchSync(cloudMedia, 200); setSyncModalOpen(false); }}
+                className="w-full py-2 bg-primary-container text-on-primary-container rounded-lg hover:bg-primary hover:text-on-primary transition"
+              >
+                Latest 200
+              </button>
+              <button 
+                onClick={() => { startBatchSync(cloudMedia, 500); setSyncModalOpen(false); }}
+                className="w-full py-2 bg-primary-container text-on-primary-container rounded-lg hover:bg-primary hover:text-on-primary transition"
+              >
+                Latest 500
+              </button>
+              
+              <div className="flex gap-2 mt-2">
+                <input 
+                  type="number" 
+                  value={customSyncCount}
+                  onChange={(e) => setCustomSyncCount(e.target.value)}
+                  placeholder="Custom amount"
+                  className="flex-1 bg-surface-container-high rounded-lg px-3 py-2 text-on-surface outline-none"
+                />
+                <button 
+                  onClick={() => { 
+                    const count = parseInt(customSyncCount, 10);
+                    if (count > 0) {
+                      startBatchSync(cloudMedia, count); 
+                      setSyncModalOpen(false); 
+                    }
+                  }}
+                  className="px-4 py-2 bg-secondary text-on-secondary rounded-lg hover:bg-secondary-container hover:text-on-secondary-container transition"
+                >
+                  Sync
+                </button>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setSyncModalOpen(false)}
+              className="w-full py-2 mt-2 text-on-surface-variant hover:text-on-surface transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
