@@ -137,32 +137,8 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
         className="mt-12 flex flex-col items-center gap-4 border-t border-outline/10 dark:border-white/10 pt-8 w-full max-w-2xl"
       >
         <p className="text-sm text-gray-500 font-medium">AVAILABLE ON ALL YOUR DEVICES</p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <a 
-            href="/downloads/CuratorAI.apk" 
-            download
-            className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-black/5 dark:bg-surface-container-lowest/5 border border-outline/20 dark:border-white/10 hover:bg-black/10 dark:bg-surface-container-lowest/10 hover:border-white/20 transition-all group"
-          >
-            <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993s-.4482.9997-.9993.9997zm-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993s-.4482.9997-.9993.9997zm11.4045-6.02l1.9973-3.4592a.416.416 0 0 0-.1521-.5676.416.416 0 0 0-.5676.1521l-2.022 3.503C15.5902 8.244 13.8533 7.851 12 7.851c-1.8533 0-3.5902.393-5.1372 1.099l-2.022-3.503a.416.416 0 1 0-.7197.4155l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396z"/></svg>
-            <div className="flex flex-col text-left">
-              <span className="text-[10px] uppercase text-gray-500 leading-none">Download for</span>
-              <span className="font-semibold text-on-surface dark:text-white leading-tight">Android (APK)</span>
-            </div>
-            <svg className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          </a>
-
-          <a 
-            href="/downloads/CuratorAI-Desktop.zip" 
-            download
-            className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-black/5 dark:bg-surface-container-lowest/5 border border-outline/20 dark:border-white/10 hover:bg-black/10 dark:bg-surface-container-lowest/10 hover:border-white/20 transition-all group"
-          >
-            <svg className="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.951-1.801"/></svg>
-            <div className="flex flex-col text-left">
-              <span className="text-[10px] uppercase text-gray-500 leading-none">Download for</span>
-              <span className="font-semibold text-on-surface dark:text-white leading-tight">Windows / PC</span>
-            </div>
-            <svg className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          </a>
+        <div className="flex flex-wrap justify-center gap-4 text-gray-400 text-sm">
+          <p>Tap <strong className="text-on-surface dark:text-white">Install App</strong> in your browser menu to use Curator AI offline on Android, iOS, Windows, and Mac.</p>
         </div>
       </motion.div>
     </motion.section>
