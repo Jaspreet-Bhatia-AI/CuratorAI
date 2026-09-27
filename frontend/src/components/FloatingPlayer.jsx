@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { loadFileFromDisk } from '../utils/fs';
 
 export default function FloatingPlayer() {
   const { currentTrack, isPlaying, togglePlay } = useAppContext();
@@ -21,16 +20,11 @@ export default function FloatingPlayer() {
         url = `/api/stream/${encodeURIComponent(currentTrack.filename)}`;
         if (active) setAudioUrl(url);
       } else if (currentTrack.source === 'local') {
-        // Fetch from OS disk if we stored it natively!
-        if (currentTrack.hasLocalFile && currentTrack.filename) {
-          const file = await loadFileFromDisk(currentTrack.filename);
-          if (file && active) {
-            url = URL.createObjectURL(file);
-            setAudioUrl(url);
-          }
-        } else if (currentTrack.blob) {
-          // Fallback for legacy items stored purely in IndexedDB
+        if (currentTrack.blob) {
           url = URL.createObjectURL(currentTrack.blob);
+          if (active) setAudioUrl(url);
+        } else if (currentTrack.url) {
+          url = currentTrack.url;
           if (active) setAudioUrl(url);
         }
       }
@@ -40,7 +34,7 @@ export default function FloatingPlayer() {
     
     return () => {
       active = false;
-      if (currentTrack.source === 'local' && url) {
+      if (currentTrack.source === 'local' && url && url.startsWith('blob:')) {
         URL.revokeObjectURL(url);
       }
     };

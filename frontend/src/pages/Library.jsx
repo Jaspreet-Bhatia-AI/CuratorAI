@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { getLibrarySongs, removeSongFromLibrary, saveSongToLibrary } from '../utils/db';
-import { getDirectoryHandle, deleteFileFromDisk } from '../utils/fs';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
@@ -53,9 +52,6 @@ export default function Library() {
 
   const handleRemoveDb = async (item) => {
     try {
-      if (item.hasLocalFile && item.filename) {
-        await deleteFileFromDisk(item.filename);
-      }
       await removeSongFromLibrary(item.id);
       setDbSongs(prev => prev.filter(s => s.id !== item.id));
       toast.success("Removed from device storage");

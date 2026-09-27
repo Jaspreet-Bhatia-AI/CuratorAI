@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../utils/supabase';
-import { load } from '@tauri-apps/plugin-store';
 
 import { syncUserProfile } from '../utils/syncUser';
 

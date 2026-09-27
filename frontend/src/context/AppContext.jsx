@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
-import { load } from '@tauri-apps/plugin-store';
 import { supabase } from '../utils/supabase';
 
 const AppContext = createContext();
@@ -26,11 +25,6 @@ export function AppProvider({ children }) {
 // BYOK Key Check Interceptor
     let geminiKey = localStorage.getItem('gemini_key');
     let groqKey = localStorage.getItem('groq_key');
-    try {
-      const store = await load('settings.json', { autoSave: true });
-      geminiKey = await store.get('gemini_key') || geminiKey;
-      groqKey = await store.get('groq_key') || groqKey;
-    } catch (e) {}
     
     if (!geminiKey && !groqKey) {
       setPendingQuery(query);

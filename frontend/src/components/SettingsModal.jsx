@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
-import { load } from '@tauri-apps/plugin-store';
 
 export default function SettingsModal() {
   const { saveAiConfig } = useAuth();
@@ -20,36 +19,17 @@ const [isOpen, setIsOpen] = useState(false);
   }, []);
 
   React.useEffect(() => {
-    async function loadKeys() {
-      try {
-        const store = await load('settings.json', { autoSave: true });
-        const gKey = await store.get('gemini_key');
-        const grKey = await store.get('groq_key');
-        if (gKey) setGeminiKey(gKey);
-        if (grKey) setGroqKey(grKey);
-        setIsStoreLoaded(true);
-      } catch (err) {
-        // Fallback for web
-        setGeminiKey(localStorage.getItem('gemini_key') || '');
-        setGroqKey(localStorage.getItem('groq_key') || '');
-        setIsStoreLoaded(true);
-      }
+    function loadKeys() {
+      setGeminiKey(localStorage.getItem('gemini_key') || '');
+      setGroqKey(localStorage.getItem('groq_key') || '');
+      setIsStoreLoaded(true);
     }
     loadKeys();
   }, []);
 
-  const handleOpenLink = async (e, url) => {
+  const handleOpenLink = (e, url) => {
     e.preventDefault();
-    if (window.__TAURI_INTERNALS__) {
-      try {
-        const { open } = await import('@tauri-apps/plugin-shell');
-        await open(url);
-      } catch (err) {
-        window.open(url, '_blank');
-      }
-    } else {
-      window.open(url, '_blank');
-    }
+    window.open(url, '_blank');
   };
 
 const handleSave = async () => {
@@ -59,14 +39,6 @@ const handleSave = async () => {
     }
     
     // Save locally
-    try {
-      const store = await load('settings.json', { autoSave: true });
-      await store.set('gemini_key', geminiKey);
-      await store.set('groq_key', groqKey);
-      await store.save();
-    } catch (err) {
-      // Fallback
-    }
     localStorage.setItem('gemini_key', geminiKey);
     localStorage.setItem('groq_key', groqKey);
     

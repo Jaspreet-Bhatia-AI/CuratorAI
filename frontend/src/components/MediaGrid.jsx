@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from "../utils/supabase";
 import { saveSongToLibrary } from '../utils/db';
-import { saveFileToDisk } from '../utils/fs';
 import { motion } from 'framer-motion';
 
 
@@ -94,26 +93,31 @@ export default function MediaGrid({ items }) {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `${item.title.replace(/[^a-zA-Z0-9 ]/g, '')}.${format === 'mp3' ? 'mp3' : 'mp4'}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-
-      // Save metadata to internal library (WITHOUT the massive blob payload to save DB space)
+      const filename = `${item.title.replace(/[^a-zA-Z0-9 ]/g, '')}.${format === 'mp3' ? 'mp3' : 'mp4'}`;
+      
+      // Save metadata and BLOB to internal library for offline play
       await saveSongToLibrary({
         id: item.url,
         title: item.title,
         artist: item.channel,
         type: format.includes('video') ? 'video' : 'audio',
         filename: filename,
+        blob: blob,
+        coverUrl: item.thumbnail || `https://picsum.photos/seed/${item.title}/640/360`,
         hasLocalFile: true,
         timestamp: new Date()
       });
+      
+      // trigger browser download so user has file locally
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
       
       toast.success(`Saved to offline library!`, { id: item.url });
     } catch (error) {
