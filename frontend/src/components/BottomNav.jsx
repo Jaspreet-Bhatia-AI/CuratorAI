@@ -7,7 +7,6 @@ export default function BottomNav({ user, openAuthModal, openProfileModal }) {
 
   const navItems = [
     { name: 'Home', path: '/', icon: 'home' },
-    { name: 'Search', path: '/search', icon: 'search' },
     { name: 'Library', path: '/library', icon: 'library_music' },
   ];
 
