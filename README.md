@@ -45,7 +45,14 @@ cd android && ./gradlew assembleDebug
 ```
 
 ### Architecture
-- **Interactive Diagram:** [Open `docs/architecture/curator-architecture.html`](docs/architecture/curator-architecture.html) in your browser for an explorable, animated architecture map.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/architecture/curator-architecture.visual-check.1440x900.dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/architecture/curator-architecture.visual-check.1440x900.light.png">
+  <img alt="Curator AI Architecture Diagram" src="docs/architecture/curator-architecture.visual-check.1440x900.light.png" width="100%">
+</picture>
+
+*(For an interactive, animated version of this map, download and open [`docs/architecture/curator-architecture.html`](docs/architecture/curator-architecture.html) in your browser).*
 - **Frontend UI:** React + Vite + TailwindCSS (Material 3 Design)
 - **Mobile Wrapper:** Capacitor (Android/iOS)
 - **Desktop Wrapper:** Tauri (Rust)
