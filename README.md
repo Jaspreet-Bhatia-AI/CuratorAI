@@ -45,6 +45,7 @@ cd android && ./gradlew assembleDebug
 ```
 
 ### Architecture
+- **Interactive Diagram:** [Open `docs/architecture/curator-architecture.html`](docs/architecture/curator-architecture.html) in your browser for an explorable, animated architecture map.
 - **Frontend UI:** React + Vite + TailwindCSS (Material 3 Design)
 - **Mobile Wrapper:** Capacitor (Android/iOS)
 - **Desktop Wrapper:** Tauri (Rust)
