@@ -27,24 +27,25 @@ jobs:
 
       - name: Sync Backend and Frontend to Server
         run: |
-          sudo apt-get update
-          sudo apt-get install -y sshpass
+          mkdir -p ~/.ssh
+          echo "${{ secrets.KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
           
           # Use secrets.IP since the secret was named IP instead of HOST
           HOST_IP="${{ secrets.IP }}"
           
           # Sync backend (excluding venv and pycache)
-          sshpass -p "${{ secrets.KEY }}" rsync -avz -e "ssh -o StrictHostKeyChecking=no" --exclude 'venv' --exclude '__pycache__' backend/ ${{ secrets.USERNAME }}@${HOST_IP}:/home/${{ secrets.USERNAME }}/curator-ai/backend/
+          rsync -avz -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" --exclude 'venv' --exclude '__pycache__' backend/ ${{ secrets.USERNAME }}@${HOST_IP}:/home/${{ secrets.USERNAME }}/curator-ai/backend/
           
           # Sync built frontend (dist)
-          sshpass -p "${{ secrets.KEY }}" rsync -avz -e "ssh -o StrictHostKeyChecking=no" frontend/dist/ ${{ secrets.USERNAME }}@${HOST_IP}:/home/${{ secrets.USERNAME }}/curator-ai/dist/
+          rsync -avz -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" frontend/dist/ ${{ secrets.USERNAME }}@${HOST_IP}:/home/${{ secrets.USERNAME }}/curator-ai/dist/
 
       - name: Restart Backend and Fix Permissions
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.IP }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.KEY }}
+          key: ${{ secrets.KEY }}
           script: |
             cd /home/${{ secrets.USERNAME }}/curator-ai/backend
             source venv/bin/activate
