@@ -28,32 +28,32 @@ jobs:
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.8.0
         with:
-          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+          ssh-private-key: ${{ secrets.KEY }}
 
       - name: Add Server to Known Hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H 52.76.154.38 >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
       - name: Sync Backend and Frontend to Server
         run: |
           # Sync backend (excluding venv and pycache)
-          rsync -avz --exclude 'venv' --exclude '__pycache__' backend/ ubuntu@52.76.154.38:/home/ubuntu/curator-ai/backend/
+          rsync -avz --exclude 'venv' --exclude '__pycache__' backend/ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/${{ secrets.USERNAME }}/curator-ai/backend/
           
           # Sync built frontend (dist)
-          rsync -avz frontend/dist/ ubuntu@52.76.154.38:/home/ubuntu/curator-ai/dist/
+          rsync -avz frontend/dist/ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/${{ secrets.USERNAME }}/curator-ai/dist/
 
       - name: Restart Backend and Fix Permissions
         uses: appleboy/ssh-action@master
         with:
-          host: 52.76.154.38
-          username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
           script: |
-            cd /home/ubuntu/curator-ai/backend
+            cd /home/${{ secrets.USERNAME }}/curator-ai/backend
             source venv/bin/activate
             pip install --no-cache-dir -r requirements.txt
             pm2 restart curator-backend
             
-            # Ensure Apache permissions are correct for frontend files
-            sudo chmod -R 755 /home/ubuntu/curator-ai/dist
+            # Ensure permissions are correct for frontend files
+            sudo chmod -R 755 /home/${{ secrets.USERNAME }}/curator-ai/dist
