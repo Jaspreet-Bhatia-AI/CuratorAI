@@ -31,7 +31,7 @@ jobs:
           sudo apt-get install -y sshpass
           
           # Use secrets.IP since the secret was named IP instead of HOST
-          HOST_IP="${{ secrets.HOST || secrets.IP }}"
+          HOST_IP="${{ secrets.IP }}"
           
           # Sync backend (excluding venv and pycache)
           sshpass -p "${{ secrets.KEY }}" rsync -avz -e "ssh -o StrictHostKeyChecking=no" --exclude 'venv' --exclude '__pycache__' backend/ ${{ secrets.USERNAME }}@${HOST_IP}:/home/${{ secrets.USERNAME }}/curator-ai/backend/
@@ -42,7 +42,7 @@ jobs:
       - name: Restart Backend and Fix Permissions
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST || secrets.IP }}
+          host: ${{ secrets.IP }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.KEY }}
           script: |
