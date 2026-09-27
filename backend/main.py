@@ -108,9 +108,7 @@ async def generate_roadmap(request: Request, req: RoadmapRequest, user=Depends(g
     api_key = request.headers.get("X-AI-Key", "")
     try:
         data = generate_roadmap_json(req.query, provider, api_key)
-        import db
         user_email = user.email if hasattr(user, 'email') else user.get("email")
-        db.save_user_history(user_email, req.query, data)
         return {"success": True, "data": data}
     except Exception as e:
         import traceback
@@ -125,9 +123,7 @@ async def get_history(request: Request, user=Depends(get_current_user)):
     user_email = user.email if hasattr(user, 'email') else user.get("email")
     if not user_email:
         return {"success": True, "data": []}
-    import db
-    data = db.get_user_history(user_email)
-    return {"success": True, "data": data}
+    return {"success": True, "data": []}
 
 @app.post("/api/search")
 @limiter.limit("30/minute")
