@@ -36,3 +36,7 @@ Thumbs.db
 backend/history.db
 backend/cloud_library/
 downloads/*.apk
+
+# Agent & AI Files
+.agents/.system_generated/
+.agents/logs/
