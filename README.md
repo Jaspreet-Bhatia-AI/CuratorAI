@@ -52,7 +52,7 @@ cd android && ./gradlew assembleDebug
   <img alt="Curator AI Architecture Diagram" src="docs/architecture/curator-architecture.visual-check.1440x900.light.png" width="100%">
 </picture>
 
-*(For an interactive, animated version of this map, download and open [`docs/architecture/curator-architecture.html`](docs/architecture/curator-architecture.html) in your browser).*
+*(For an interactive, animated version of this map, **[click here to view the live interactive preview](https://htmlpreview.github.io/?https://github.com/Jaspreet-Bhatia-AI/CuratorAI/blob/main/docs/architecture/curator-architecture.html)**).*
 - **Frontend UI:** React + Vite + TailwindCSS (Material 3 Design)
 - **Mobile Wrapper:** Capacitor (Android/iOS)
 - **Desktop Wrapper:** Tauri (Rust)
