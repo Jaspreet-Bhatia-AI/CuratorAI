@@ -43,11 +43,12 @@ export default function FloatingPlayer() {
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
+        audioRef.current.play().catch(e => console.error("Audio play failed:", e));
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, currentTrack]);
+  }, [isPlaying, currentTrack, audioUrl]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -89,8 +90,14 @@ export default function FloatingPlayer() {
         />
       )}
       
-      <div className="bg-surface-container-lowest/85 backdrop-blur-2xl shadow-[0_20px_45px_-10px_rgba(15,23,42,0.18)] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        
+      <div className="relative bg-surface-container-lowest/85 backdrop-blur-2xl shadow-[0_20px_45px_-10px_rgba(15,23,42,0.18)] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <button 
+          onClick={() => playTrack(null)}
+          className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-surface shadow-md flex items-center justify-center text-on-surface-variant hover:bg-error-container hover:text-on-error-container transition-colors border border-outline-variant/20 z-50"
+          aria-label="Close player"
+        >
+          <span className="material-symbols-outlined text-[16px]">close</span>
+        </button>
         {/* Left Section */}
         <div className="flex items-center gap-4 w-full md:w-1/3 min-w-0">
           <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-md bg-gradient-to-br from-primary via-secondary to-primary-container flex items-center justify-center">
