@@ -184,7 +184,13 @@ export default function Library() {
   const activeList = getActiveList();
 
   return (
-    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-[1600px] mx-auto w-full gap-8 mb-24">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="flex-1 flex flex-col p-4 md:p-8 max-w-[1600px] mx-auto w-full gap-8 mb-24"
+    >
       {/* Header & Tabs */}
       <div className="flex flex-col gap-6">
         <div>
@@ -194,34 +200,32 @@ export default function Library() {
           </p>
         </div>
 
-        <div className="flex p-1 bg-surface-container-low rounded-xl w-fit border border-outline-variant/30">
-          <button 
-            onClick={() => setActiveTab('audio')}
-            className={`px-6 py-2.5 rounded-lg font-label-md transition-all ${activeTab === 'audio' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface hover:bg-surface-container'}`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">headphones</span>
-              Offline Audio
-            </div>
-          </button>
-          <button 
-            onClick={() => setActiveTab('video')}
-            className={`px-6 py-2.5 rounded-lg font-label-md transition-all ${activeTab === 'video' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface hover:bg-surface-container'}`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">videocam</span>
-              Offline Video
-            </div>
-          </button>
-          <button 
-            onClick={() => setActiveTab('cloud')}
-            className={`px-6 py-2.5 rounded-lg font-label-md transition-all ${activeTab === 'cloud' ? 'bg-secondary text-on-secondary shadow-sm' : 'text-on-surface hover:bg-surface-container'}`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">cloud</span>
-              Cloud Server
-            </div>
-          </button>
+        {/* Animated Segmented Control Tabs */}
+        <div className="flex p-1.5 bg-surface-container/40 backdrop-blur-md rounded-2xl w-fit border border-outline-variant/30 shadow-inner relative">
+          {[
+            { id: 'audio', label: 'Offline Audio', icon: 'headphones', color: 'primary' },
+            { id: 'video', label: 'Offline Video', icon: 'videocam', color: 'primary' },
+            { id: 'cloud', label: 'Cloud Server', icon: 'cloud', color: 'secondary' }
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button 
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative px-6 py-2.5 rounded-xl font-label-md transition-colors z-10 flex items-center gap-2 focus:outline-none ${isActive ? `text-on-${tab.color}` : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="library-tab-pill"
+                    className={`absolute inset-0 bg-${tab.color} rounded-xl -z-10 shadow-sm`}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className="material-symbols-outlined text-[18px] relative z-10">{tab.icon}</span>
+                <span className="relative z-10 font-bold">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -292,6 +296,6 @@ export default function Library() {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

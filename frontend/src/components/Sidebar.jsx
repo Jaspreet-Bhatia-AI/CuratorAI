@@ -68,9 +68,9 @@ export default function Sidebar({ isOpen, closeMenu }) {
             className="w-full text-left p-3.5 rounded-2xl bg-surface-container-low flex items-center justify-between shadow-sm border border-outline-variant/20 cursor-pointer hover:bg-surface-container-high hover:shadow-md hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <div className="flex items-center gap-3">
-              <img alt="Profile" className="w-9 h-9 rounded-full object-cover bg-surface shadow-sm" src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} />
+              <img alt="Profile" className="w-9 h-9 rounded-full object-cover bg-surface shadow-sm" src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} />
               <div className="flex flex-col min-w-0">
-                <span className="font-label-md text-label-md text-on-surface font-semibold truncate">{user.name || user.user_metadata?.full_name || 'User'}</span>
+                <span className="font-label-md text-label-md text-on-surface font-semibold truncate">{user.name || user.user_metadata?.full_name || user.user_metadata?.name || 'User'}</span>
                 <span className="font-label-sm text-[10px] text-primary font-bold uppercase tracking-wide">Pro Plan</span>
               </div>
             </div>

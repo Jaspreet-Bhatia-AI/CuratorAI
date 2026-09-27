@@ -26,7 +26,25 @@ def get_progress_hook(task_id):
             DOWNLOAD_PROGRESS[task_id] = {"status": "processing", "percent": "100%"}
     return hook
 
+import requests
+import re
+
+def parse_spotify_url(url: str) -> str:
+    try:
+        res = requests.get(url, timeout=5)
+        match = re.search(r'<title>(.*?)</title>', res.text)
+        if match:
+            title = match.group(1)
+            clean_title = title.split("| Spotify")[0].strip()
+            return f"ytsearch1:{clean_title}"
+    except Exception as e:
+        print(f"Failed to parse spotify: {e}")
+    return url
+
 def extract_url_to_roadmap(url: str):
+    if "spotify.com" in url:
+        url = parse_spotify_url(url)
+        
     ydl_opts_fast = {
         "quiet": True,
         "no_warnings": True,

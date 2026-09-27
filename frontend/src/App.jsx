@@ -34,35 +34,18 @@ function LayoutEngine() {
     <div className="bg-background text-on-surface font-sans min-h-screen flex flex-col selection:bg-primary/30 transition-colors duration-300 pb-[72px] md:pb-0">
       <Navbar isHome={isHome} toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
       
-      {!isHome && (
-        <>
-          <Sidebar isOpen={isMobileMenuOpen} closeMenu={() => setIsMobileMenuOpen(false)} />
-          {/* Mobile Overlay */}
-          <AnimatePresence>
-            {isMobileMenuOpen && (
-              <div 
-                onClick={() => setIsMobileMenuOpen(false)} 
-                className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-sm"
-              />
-            )}
-          </AnimatePresence>
-        </>
-      )}
-      
-      <div className={`${!isHome ? 'md:pl-64' : ''}`}>
-        <main className={`w-full pt-16 min-h-screen ${isHome ? '' : 'bg-background'}`}>
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>              
-              <Route path="/" element={<Home />} />
-              <Route path="/studio" element={<Navigate to="/" replace />} />
-              <Route path="/roadmap" element={<Navigate to="/" replace />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/library" element={<Library />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AnimatePresence>
-        </main>
-      </div>
+      <main className="w-full pt-[72px] min-h-screen flex flex-col relative z-0">
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>              
+            <Route path="/" element={<Home />} />
+            <Route path="/studio" element={<Navigate to="/" replace />} />
+            <Route path="/roadmap" element={<Navigate to="/" replace />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/library" element={<Library />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AnimatePresence>
+      </main>
       
       <BottomNav 
         user={user} 

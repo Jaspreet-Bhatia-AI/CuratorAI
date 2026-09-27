@@ -37,7 +37,13 @@ export default function Home() {
 const hasResults = roadmap || isLoading;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="flex flex-col w-full min-h-[calc(100vh-4rem)] items-center relative overflow-x-hidden px-4 sm:px-6 lg:px-12 select-none pb-32 bg-background">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} 
+      className="flex flex-col w-full min-h-[calc(100vh-4rem)] items-center relative overflow-x-hidden px-4 sm:px-6 lg:px-12 select-none pb-32 bg-background"
+    >
       
       {/* Intense Ambient Background Orbs */}
       <div className="absolute top-0 right-0 w-[40rem] h-[40rem] rounded-full bg-gradient-to-tr from-primary/20 via-tertiary/10 to-transparent blur-3xl pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '10s' }}></div>
@@ -68,7 +74,7 @@ const hasResults = roadmap || isLoading;
               <span className="material-symbols-outlined text-[28px] text-primary/80 mr-3">search</span>
               <input 
                 className="w-full bg-transparent text-on-surface placeholder:text-on-surface-variant/60 font-medium text-[16px] sm:text-[18px] focus:outline-none antialiased" 
-                placeholder="What do you want to learn or listen to today?" 
+                placeholder="What do you want to learn, or paste a Spotify link..."
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

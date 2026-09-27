@@ -12,8 +12,8 @@ export default function BottomNav({ user, openAuthModal, openProfileModal }) {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container-lowest/80 backdrop-blur-xl border-t border-outline-variant/30 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-      <nav className="flex justify-around items-center h-16 px-2">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-[40px] border-t border-outline-variant/20 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+      <nav className="flex justify-around items-center h-[72px] px-2 mb-1">
         {navItems.map((item) => {
           const isActive = path === item.path;
           return (

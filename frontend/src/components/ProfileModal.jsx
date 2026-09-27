@@ -46,9 +46,9 @@ export default function ProfileModal() {
                 transition={{ type: "spring", damping: 15 }}
                 alt="Profile" 
                 className="w-20 h-20 rounded-full object-cover shadow-sm bg-white mb-4 border-4 border-surface-container-lowest" 
-                src={user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`} 
+                src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}&mouth=smile,twinkle`}
               />
-              <h3 id="profile-modal-title" className="font-headline-sm text-headline-sm text-on-surface">{user.name || user.user_metadata?.full_name || 'User'}</h3>
+              <h3 id="profile-modal-title" className="font-headline-sm text-headline-sm text-on-surface">{user.name || user.user_metadata?.full_name || user.user_metadata?.name || 'User'}</h3>
               <p className="font-body-sm text-body-sm text-on-surface-variant">{user.email}</p>
             </div>
 

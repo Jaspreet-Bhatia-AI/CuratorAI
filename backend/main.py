@@ -51,13 +51,36 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         content={"success": False, "detail": "Rate limit exceeded. Please slow down and try again."}
     )
 
-def is_valid_youtube_url(url: str) -> bool:
+import requests
+import re
+
+def is_valid_media_url(url: str) -> bool:
+    if url.startswith("ytsearch1:"):
+        return True
+    
+    spotify_regex = r'(https?://)?(open\.spotify\.com)/(track|playlist|album)/[a-zA-Z0-9]+'
+    if re.match(spotify_regex, url):
+        return True
+
     youtube_regex = (
         r'(https?://)?(www\.)?'
         r'(youtube|youtu|youtube-nocookie)\.(com|be)/'
         r'(watch\?v=|embed/|v/|.+\?v=|shorts/)?([^&=%\?]{11})'
     )
     return bool(re.match(youtube_regex, url))
+
+def parse_spotify_url(url: str) -> str:
+    try:
+        res = requests.get(url, timeout=5)
+        match = re.search(r'<title>(.*?)</title>', res.text)
+        if match:
+            title = match.group(1)
+            # Remove " - song and lyrics by X | Spotify" suffix for better searching
+            clean_title = title.split("| Spotify")[0].strip()
+            return f"ytsearch1:{clean_title}"
+    except Exception as e:
+        print(f"Failed to parse spotify: {e}")
+    return url
 
 app.add_middleware(
     CORSMiddleware,
@@ -213,8 +236,11 @@ from compressor import compress_media_background
 @app.post("/api/download-audio")
 @limiter.limit("50/minute")
 async def download_audio_endpoint(request: Request, req: DownloadRequest, background_tasks: BackgroundTasks, user=Depends(get_current_user)):
-    if not is_valid_youtube_url(req.url):
-        raise HTTPException(status_code=400, detail="Invalid YouTube URL")
+    if not is_valid_media_url(req.url):
+        raise HTTPException(status_code=400, detail="Invalid Media URL (YouTube or Spotify only)")
+        
+    if "spotify.com" in req.url:
+        req.url = parse_spotify_url(req.url)
         
     format_mapping = {
         "mp3": "audio",
@@ -251,8 +277,11 @@ async def download_audio_endpoint(request: Request, req: DownloadRequest, backgr
 @app.get("/api/download")
 @limiter.limit("50/minute")
 async def download_endpoint(request: Request, url: str, background_tasks: BackgroundTasks, format: str = "video_high", task_id: str = None, user=Depends(get_current_user)):
-    if not is_valid_youtube_url(url):
-        raise HTTPException(status_code=400, detail="Invalid YouTube URL")
+    if not is_valid_media_url(url):
+        raise HTTPException(status_code=400, detail="Invalid Media URL (YouTube or Spotify only)")
+        
+    if "spotify.com" in url:
+        url = parse_spotify_url(url)
         
     download_dir = os.path.join(os.getcwd(), "temp_downloads")
     filepath = download_video(url, download_dir, format, task_id)

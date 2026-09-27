@@ -10,3 +10,6 @@ fastapi
 uvicorn
 websockets
 python-multipart
+supabase
+requests
+slowapi

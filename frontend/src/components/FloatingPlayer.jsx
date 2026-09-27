@@ -86,7 +86,7 @@ export default function FloatingPlayer() {
   if (!currentTrack) return null;
 
   return (
-    <div className="fixed bottom-6 inset-x-0 mx-auto w-11/12 max-w-5xl z-50">
+    <div className="fixed bottom-[88px] md:bottom-6 inset-x-0 mx-auto w-[96%] max-w-5xl z-40 transition-all duration-300">
       {audioUrl && (
         <audio 
           ref={audioRef} 

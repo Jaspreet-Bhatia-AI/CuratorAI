@@ -3,6 +3,8 @@ import toast from 'react-hot-toast';
 import { supabase } from '../utils/supabase';
 import { load } from '@tauri-apps/plugin-store';
 
+import { syncUserProfile } from '../utils/syncUser';
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -27,7 +29,9 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchUserData(session.user.id);
+      if (session?.user) {
+        syncUserProfile(session.user);
+      }
       setLoading(false);
     });
 
@@ -35,7 +39,9 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchUserData(session.user.id);
+      if (session?.user) {
+        syncUserProfile(session.user);
+      }
     });
 
     // Load theme & AI config from local storage

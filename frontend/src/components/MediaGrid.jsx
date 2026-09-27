@@ -77,10 +77,13 @@ export default function MediaGrid({ items }) {
       const controller = new AbortController();
       abortControllers.current[item.url] = controller;
 
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const response = await fetch('/api/download-audio', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
         },
         body: JSON.stringify({ url: item.url, format: format }),
         signal: controller.signal

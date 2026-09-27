@@ -1,21 +1,21 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
-# Install system dependencies (ffmpeg is required for yt-dlp to convert audio)
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies including ffmpeg
+RUN apt-get update && \
+    apt-get install -y ffmpeg curl nodejs && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy requirements
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code
+# Copy source code
 COPY . .
 
-# Expose FastAPI port
+# Expose port 8000
 EXPOSE 8000
 
-# Run Uvicorn
+# Start FastAPI server
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
