@@ -12,15 +12,6 @@ export const SyncProvider = ({ children }) => {
   const [activeDownloads, setActiveDownloads] = useState([]);
 
   const startBatchSync = useCallback(async (cloudSongs, targetCount) => {
-    let dirHandle = null;
-    try {
-      if ('showDirectoryPicker' in window) {
-        dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-      }
-    } catch (e) {
-      console.warn("Directory picker cancelled or unsupported:", e);
-    }
-
     try {
       const librarySongs = await getLibrarySongs();
       const existingIds = new Set(librarySongs.map(song => song.id));
@@ -99,19 +90,6 @@ export const SyncProvider = ({ children }) => {
             artist: song.artist || 'Cloud',
             blob
           });
-          
-          if (dirHandle) {
-            try {
-              // Replace invalid filename characters
-              const safeTitle = song.title.replace(/[/\\?%*:|"<>]/g, '-');
-              const fileHandle = await dirHandle.getFileHandle(`${safeTitle}.mp3`, { create: true });
-              const writable = await fileHandle.createWritable();
-              await writable.write(blob);
-              await writable.close();
-            } catch (e) {
-              console.error("Failed to write to disk:", e);
-            }
-          }
           
         } catch (error) {
           console.error("Failed to download song:", song.title, error);
