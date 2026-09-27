@@ -40,7 +40,6 @@ export default function CloudSyncManager() {
         }
       }
     } catch (e) {
-      console.error("Failed to check cloud sync", e);
     }
   };
 
@@ -70,7 +69,6 @@ export default function CloudSyncManager() {
         });
         successCount++;
       } catch (err) {
-        console.error("Failed downloading", file.title, err);
       }
     }
     

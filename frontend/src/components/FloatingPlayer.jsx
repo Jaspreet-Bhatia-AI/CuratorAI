@@ -49,7 +49,6 @@ export default function FloatingPlayer() {
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(e => console.error("Playback error:", e));
       } else {
         audioRef.current.pause();
       }

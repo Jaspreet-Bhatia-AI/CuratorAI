@@ -32,7 +32,6 @@ export const getDirectoryHandle = async (promptUser = false) => {
     
     return null;
   } catch (err) {
-    console.error("FS API Error:", err);
     return null;
   }
 };

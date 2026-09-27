@@ -29,7 +29,6 @@ export default function History() {
         setLoading(false);
       })
       .catch(err => {
-        console.error(err);
         setLoading(false);
       });
   }, [user]);

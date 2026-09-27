@@ -34,7 +34,6 @@ export default function Library() {
       const songs = await getLibrarySongs();
       setDbSongs(songs);
     } catch (e) {
-      console.error(e);
       toast.error('Failed to load local device library');
     }
   };
@@ -48,7 +47,6 @@ export default function Library() {
       if (error) throw error;
       setCloudMedia(data || []);
     } catch (e) {
-      console.error(e);
       toast.error('Failed to load cloud media');
     }
   };
@@ -93,7 +91,6 @@ export default function Library() {
       toast.success("Saved to device for offline play!", { id: toastId });
       loadOfflineMedia(); // Refresh offline lists
     } catch (e) {
-      console.error(e);
       toast.error("Download failed", { id: toastId });
     } finally {
       setIsDownloading(false);

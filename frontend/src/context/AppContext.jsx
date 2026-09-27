@@ -118,12 +118,13 @@ export function AppProvider({ children }) {
           .insert([{ query_text: query.toLowerCase(), json_data: payload }]);
       }
       
-      if (user?.email) {
+      if (user?.id) {
         await supabase
           .from('user_history')
           .insert([{ 
-             user_email: user.email, 
-             query: query, 
+             user_id: user.id, 
+             query_text: query, 
+             type: 'roadmap',
              roadmap: payload 
           }]);
       }
@@ -134,7 +135,6 @@ export function AppProvider({ children }) {
         setSelectedTopic(payload.roadmap_overview[0]);
       }
     } catch (error) {
-      console.error(error);
       toast.error(error.message || "Failed to generate content.");
     }
     setIsLoading(false);

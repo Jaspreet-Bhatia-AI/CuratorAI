@@ -59,7 +59,6 @@ export default function Studio() {
             }
           }
         } catch (e) {
-          console.error(e);
         }
       });
       

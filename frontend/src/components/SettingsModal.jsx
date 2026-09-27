@@ -45,7 +45,6 @@ const [isOpen, setIsOpen] = useState(false);
         const { open } = await import('@tauri-apps/plugin-shell');
         await open(url);
       } catch (err) {
-        console.error("Tauri shell open failed:", err);
         window.open(url, '_blank');
       }
     } else {

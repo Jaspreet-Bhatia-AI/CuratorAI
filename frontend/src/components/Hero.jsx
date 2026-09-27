@@ -61,6 +61,7 @@ export default function Hero({ onSearch, hasSearched, isLoading, progress, loadi
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={isLoading}
+            maxLength={250}
             placeholder={isLoading ? "Curating your media..." : "What do you want to learn or listen to today?"}
             className="w-full bg-transparent border-none outline-none text-on-surface dark:text-white px-6 py-4 placeholder-gray-500 text-lg disabled:opacity-50 transition-opacity"
           />

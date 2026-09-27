@@ -121,7 +121,6 @@ export default function MediaGrid({ items }) {
         toast.error("Download cancelled.", { id: item.url });
         setDownloadingUrls(prev => ({ ...prev, [item.url]: false }));
       } else {
-        console.error("Download error:", error);
         if (retryCount < 3) {
           toast.loading(`Retrying ${item.title} (${retryCount + 1}/3)...`, { id: item.url });
           // Exponential backoff

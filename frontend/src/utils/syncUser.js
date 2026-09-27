@@ -29,10 +29,8 @@ export const syncUserProfile = async (user) => {
         ]);
         
       if (insertError) {
-        console.error("Failed to sync user to public table:", insertError);
       }
     }
   } catch (error) {
-    console.error("Error syncing user profile:", error);
   }
 };
