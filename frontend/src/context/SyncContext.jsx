@@ -83,7 +83,7 @@ export const SyncProvider = ({ children }) => {
             }
           }
           
-          const blob = new Blob(chunks);
+          const blob = new Blob(chunks, { type: response.headers.get("content-type") || "audio/mpeg" });
           await saveSongToLibrary({
             id: song.id,
             title: song.title,
