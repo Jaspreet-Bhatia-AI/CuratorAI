@@ -43,6 +43,34 @@ export function AppProvider({ children }) {
     setSearchQuery(query);
 
     try {
+      // 1. FIRST: Search Personal Cloud Library by Title!
+      const { data: cloudMusic } = await supabase
+        .from('media_metadata')
+        .select('*')
+        .ilike('title', `%${query}%`)
+        .limit(20);
+
+      if (cloudMusic && cloudMusic.length > 0) {
+        const payload = {
+          title: `Library Results: ${query}`,
+          description: `Found ${cloudMusic.length} tracks in your personal cloud.`,
+          type: "playlist",
+          curriculum: cloudMusic.map((m, i) => ({
+            id: i + 1,
+            title: m.title,
+            type: "audio",
+            youtube_url: m.url || m.youtube_url, 
+            cloud_url: m.cloud_url,
+            duration: m.duration || "3:00"
+          }))
+        };
+        setRoadmap(payload);
+        setCurriculum(payload.curriculum);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. SECOND: Try Cache
       const { data: cachedData } = await supabase
         .from('queries_cache')
         .select('json_data')
@@ -60,12 +88,15 @@ export function AppProvider({ children }) {
         const finalProvider = activeGroq ? 'groq' : 'gemini';
         const finalKey = activeGroq || activeGemini || '';
 
+        const { data: { session } } = await supabase.auth.getSession();
+        
         const res = await fetch('/api/generate-roadmap', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             'X-AI-Provider': finalProvider,
-            'X-AI-Key': finalKey.trim()
+            'X-AI-Key': finalKey.trim(),
+            ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
           },
           body: JSON.stringify({ query: query, user_email: user?.email || null }),
         });
