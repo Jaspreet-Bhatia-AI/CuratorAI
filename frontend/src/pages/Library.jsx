@@ -175,10 +175,18 @@ export default function Library() {
     );
   };
 
+  const [cloudSearchQuery, setCloudSearchQuery] = useState('');
+
   const getActiveList = () => {
-    if (activeTab === 'audio') return offlineAudio;
-    if (activeTab === 'video') return offlineVideo;
-    return cloudMedia;
+    let list = [];
+    if (activeTab === 'audio') list = offlineAudio;
+    else if (activeTab === 'video') list = offlineVideo;
+    else list = cloudMedia;
+    
+    if (activeTab === 'cloud' && cloudSearchQuery.trim()) {
+      return list.filter(item => item.title?.toLowerCase().includes(cloudSearchQuery.toLowerCase()) || item.artist?.toLowerCase().includes(cloudSearchQuery.toLowerCase()));
+    }
+    return list;
   };
 
   const activeList = getActiveList();
@@ -193,11 +201,25 @@ export default function Library() {
     >
       {/* Header & Tabs */}
       <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface mb-2">Media Library</h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
-            Manage your offline downloads and browse the cloud server.
-          </p>
+        <div className="flex justify-between items-start flex-col md:flex-row gap-4">
+          <div>
+            <h1 className="font-headline-lg text-headline-lg text-on-surface mb-2">Media Library</h1>
+            <p className="font-body-md text-body-md text-on-surface-variant">
+              Manage your offline downloads and browse the cloud server.
+            </p>
+          </div>
+          {activeTab === 'cloud' && (
+            <div className="flex items-center gap-2 bg-surface-container-high rounded-full px-4 py-2 w-full md:w-auto shadow-sm">
+              <span className="material-symbols-outlined text-on-surface-variant">search</span>
+              <input 
+                type="text"
+                placeholder="Search cloud library..."
+                value={cloudSearchQuery}
+                onChange={(e) => setCloudSearchQuery(e.target.value)}
+                className="bg-transparent border-none outline-none text-on-surface w-full md:w-64 placeholder:text-on-surface-variant/70"
+              />
+            </div>
+          )}
         </div>
 
         {/* Animated Segmented Control Tabs */}
