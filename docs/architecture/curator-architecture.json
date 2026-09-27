@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Curator AI Serverless Architecture",
+    "output": "curator-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "users", "type": "external", "label": "Users", "sublabel": "Browser / Desktop", "pos": [40, 300], "size": [150, 60] },
+    { "id": "frontend", "type": "frontend", "label": "React Frontend", "sublabel": "Vite + Tailwind", "pos": [300, 300], "size": [130, 60] },
+    { "id": "tauri", "type": "backend", "label": "Tauri Sidecar", "sublabel": "yt-dlp binary", "pos": [300, 150], "size": [130, 60] },
+    { "id": "gemini", "type": "external", "label": "Google Gemini", "sublabel": "AI API", "pos": [300, 450], "size": [130, 60] },
+    { "id": "supabase_auth", "type": "security", "label": "Supabase Auth", "sublabel": "JWT / OAuth", "pos": [560, 300], "size": [130, 60] },
+    { "id": "supabase_storage", "type": "cloud", "label": "Supabase Storage", "sublabel": "S3 Compatible", "pos": [560, 450], "size": [130, 60] },
+    { "id": "supabase_db", "type": "database", "label": "Supabase DB", "sublabel": "PostgreSQL", "pos": [820, 300], "size": [130, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Supabase Infrastructure", "wraps": ["supabase_auth", "supabase_storage", "supabase_db"] },
+    { "kind": "region", "label": "Client Device", "wraps": ["frontend", "tauri"] }
+  ],
+  "connections": [
+    { "id": "user-frontend", "from": "users", "to": "frontend", "label": "HTTPS" },
+    { "id": "frontend-tauri", "from": "frontend", "to": "tauri", "label": "IPC calls", "fromSide": "top", "toSide": "bottom" },
+    { "id": "frontend-gemini", "from": "frontend", "to": "gemini", "label": "REST API", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "frontend-auth", "from": "frontend", "to": "supabase_auth", "label": "authenticate" },
+    { "id": "auth-db", "from": "supabase_auth", "to": "supabase_db", "label": "RLS queries" },
+    { "id": "db-storage", "from": "supabase_db", "to": "supabase_storage", "label": "metadata", "fromSide": "bottom", "toSide": "right", "via": [[885, 480]] },
+    { "id": "frontend-storage", "from": "frontend", "to": "supabase_storage", "label": "upload / stream", "variant": "dashed", "fromSide": "right", "toSide": "left", "via": [[480, 330], [480, 480]] }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "100% Serverless", "items": ["No Python backend required", "React runs entirely in the browser", "Tauri handles native OS tasks"] },
+    { "dot": "emerald", "title": "Data & Auth", "items": ["Supabase handles user identity", "PostgreSQL with Row Level Security (RLS)", "S3 storage for cloud audio streaming"] }
+  ]
+}
