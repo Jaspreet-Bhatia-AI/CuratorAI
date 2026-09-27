@@ -15,6 +15,8 @@ export default function Library() {
   const { startBatchSync } = useSync();
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [customSyncCount, setCustomSyncCount] = useState('');
+  const [selectedItems, setSelectedItems] = useState(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   
   const { playTrack, currentTrack, isPlaying, togglePlay } = useAppContext();
   const { user } = useAuth();
@@ -31,6 +33,11 @@ export default function Library() {
     window.addEventListener('library-updated', handleUpdate);
     return () => window.removeEventListener('library-updated', handleUpdate);
   }, []);
+
+  useEffect(() => {
+    setSelectedItems(new Set());
+    setIsSelectionMode(false);
+  }, [activeTab]);
 
   const loadOfflineMedia = async () => {
     try {
@@ -98,6 +105,52 @@ export default function Library() {
   };
 
   // Filter lists based on tabs
+  const handleSelectAll = (items) => {
+    if (selectedItems.size === items.length && items.length > 0) {
+      setSelectedItems(new Set());
+      setIsSelectionMode(false);
+    } else {
+      setSelectedItems(new Set(items.map(i => i.id)));
+      setIsSelectionMode(true);
+    }
+  };
+
+  const toggleSelection = (id, e) => {
+    e.stopPropagation();
+    const newSet = new Set(selectedItems);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+      if (newSet.size === 0) setIsSelectionMode(false);
+    } else {
+      newSet.add(id);
+      setIsSelectionMode(true);
+    }
+    setSelectedItems(newSet);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedItems.size} items?`)) return;
+    
+    const ids = Array.from(selectedItems);
+    if (activeTab === 'cloud') {
+       const { error } = await supabase.from('media_metadata').delete().in('id', ids);
+       if (error) {
+         toast.error("Failed to delete cloud items. (Check RLS policies)");
+       } else {
+         setCloudMedia(prev => prev.filter(c => !selectedItems.has(c.id)));
+         toast.success(`Deleted ${selectedItems.size} cloud items`);
+       }
+    } else {
+       for (let id of ids) {
+          await removeSongFromLibrary(id);
+       }
+       setDbSongs(prev => prev.filter(s => !selectedItems.has(s.id)));
+       toast.success(`Removed ${selectedItems.size} items from device`);
+    }
+    setSelectedItems(new Set());
+    setIsSelectionMode(false);
+  };
+
   const offlineAudio = dbSongs.filter(s => s.type === 'audio' || !s.type);
   const offlineVideo = dbSongs.filter(s => s.type === 'video');
 
@@ -106,8 +159,13 @@ export default function Library() {
     
     return (
       <tr key={item.id} className={`hover:bg-surface-container-low/50 transition-colors group cursor-pointer ${isCurrentlyPlaying ? 'bg-primary-container/20' : ''}`}>
-        <td className="py-4 px-6" onClick={() => !isCloud && playTrack({ ...item, source: 'local' })}>
-          <div className="flex items-center gap-4 min-w-[240px]">
+        <td className="py-4 px-6 flex items-center gap-3">
+          <div onClick={(e) => toggleSelection(item.id, e)} className="cursor-pointer text-on-surface-variant hover:text-primary transition-colors flex-shrink-0 mt-2 mr-2">
+            <span className="material-symbols-outlined text-[22px]">
+              {selectedItems.has(item.id) ? 'check_box' : 'check_box_outline_blank'}
+            </span>
+          </div>
+          <div className="flex items-center gap-4 min-w-[240px] flex-1" onClick={() => !isCloud && playTrack({ ...item, source: 'local' })}>
             <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-secondary-container flex items-center justify-center shadow-inner">
               {isCurrentlyPlaying && isPlaying ? (
                 <div className="flex items-end justify-center gap-0.5 w-full h-full opacity-80 pb-3">
@@ -265,26 +323,36 @@ export default function Library() {
             <span className="px-3 py-1 bg-surface-container rounded-full text-on-surface font-label-sm">
               {activeList.length} items
             </span>
-            {activeTab === 'cloud' && (
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => setSyncModalOpen(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-lg font-label-sm hover:bg-secondary hover:text-on-secondary transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[18px]">sync_alt</span>
-                  Sync Library
-                </button>
-                <button 
-                  onClick={() => {
-                    toast.success("Syncing with cloud server...");
-                    loadCloudMedia();
-                  }}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[18px]">sync</span>
-                  Update Library
-                </button>
-              </div>
+            {selectedItems.size > 0 ? (
+              <button 
+                onClick={handleDeleteSelected}
+                className="flex items-center gap-2 px-3 py-1.5 bg-error-container text-on-error-container rounded-lg font-label-sm hover:bg-error hover:text-on-error transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">delete</span>
+                Delete {selectedItems.size} Selected
+              </button>
+            ) : (
+              activeTab === 'cloud' && (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setSyncModalOpen(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-lg font-label-sm hover:bg-secondary hover:text-on-secondary transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">sync_alt</span>
+                    Sync Library
+                  </button>
+                  <button 
+                    onClick={() => {
+                      toast.success("Syncing with cloud server...");
+                      loadCloudMedia();
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">sync</span>
+                    Update Library
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
@@ -293,7 +361,14 @@ export default function Library() {
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
-                <th className="py-4 px-6 font-semibold">Media Details</th>
+                <th className="py-4 px-6 font-semibold flex items-center gap-3">
+                  <div onClick={() => handleSelectAll(activeList)} className="cursor-pointer hover:text-primary transition-colors mt-0.5">
+                    <span className="material-symbols-outlined text-[20px]">
+                      {selectedItems.size === activeList.length && activeList.length > 0 ? 'check_box' : 'check_box_outline_blank'}
+                    </span>
+                  </div>
+                  Media Details
+                </th>
                 <th className="py-4 px-4 font-semibold hidden md:table-cell">Storage Location</th>
                 <th className="py-4 px-6 text-right font-semibold">Actions</th>
               </tr>

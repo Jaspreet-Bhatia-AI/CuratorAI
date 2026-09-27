@@ -47,3 +47,4 @@ CREATE POLICY "Allow users to insert own history" ON user_history FOR INSERT TO 
 -- Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_media_metadata_added_by ON media_metadata(added_by);
 CREATE INDEX IF NOT EXISTS idx_user_history_user_id ON user_history(user_id);
+CREATE POLICY "Allow authenticated delete media" ON media_metadata FOR DELETE TO authenticated USING (true);
