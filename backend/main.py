@@ -132,7 +132,14 @@ async def get_history(request: Request, user=Depends(get_current_user)):
 @app.post("/api/search")
 @limiter.limit("30/minute")
 async def search_video(request: Request, req: SearchRequest, user=Depends(get_current_user)):
-    result = await asyncio.to_thread(search_youtube, req.search_query, req.type, req.original_query)
+    search_type = req.type
+    query_lower = req.search_query.lower()
+    
+    # Auto-detect music queries if default education is passed
+    if search_type == "education" and ("song" in query_lower or "audio" in query_lower or "music" in query_lower):
+        search_type = "music"
+        
+    result = await asyncio.to_thread(search_youtube, req.search_query, search_type, req.original_query)
     if result:
         return {"success": True, "data": result}
     raise HTTPException(status_code=404, detail="Video not found")

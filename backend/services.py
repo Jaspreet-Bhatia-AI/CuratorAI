@@ -3,8 +3,19 @@ from yt_dlp import YoutubeDL as yt
 import os
 import time
 
+import redis
+import json
+
+try:
+    redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+    redis_client.ping()
+except Exception as e:
+    print("Redis not available, using in-memory cache fallback.", e)
+    redis_client = None
+
 ROADMAP_CACHE = {}
 SEARCH_CACHE = {}
+
 import json
 import re
 import shutil
@@ -96,9 +107,17 @@ def extract_url_to_roadmap(url: str):
 
 def generate_roadmap_json(user_query: str, provider: str = "groq", api_key: str = ""):
     query_lower = user_query.strip().lower()
-    if query_lower in ROADMAP_CACHE:
-        print(f"Returning cached roadmap for: {query_lower}")
-        return ROADMAP_CACHE[query_lower]
+    try:
+        if redis_client:
+            cached = redis_client.get(f"roadmap:{query_lower}")
+            if cached:
+                print(f"Returning Redis cached roadmap for: {query_lower}")
+                return json.loads(cached)
+        elif query_lower in ROADMAP_CACHE:
+            print(f"Returning cached roadmap for: {query_lower}")
+            return ROADMAP_CACHE[query_lower]
+    except Exception as e:
+        print(f"Redis get error: {e}")
 
     if user_query.startswith("http://") or user_query.startswith("https://"):
         return extract_url_to_roadmap(user_query)
@@ -108,6 +127,7 @@ Your task is to take the user's request and structure it into a logical JSON roa
 
 IMPORTANT CURATION RULES:
 - NEVER invent content. If provided with REAL YOUTUBE SEARCH RESULTS in your context, you MUST use those exact titles to build your roadmap/playlist. This is crucial for surfacing brand new releases.
+- VERY IMPORTANT FOR MUSIC: If the user query is a song name, an artist, or implies music (like "patola", "punjabi songs", "dua lipa"), you MUST set the "type" property to "music".
 - FOR MUSIC: To ensure the correct official video is fetched, your search_query MUST be perfectly formatted as: "{Exact Track Name} {Artist Name} Official Audio" (e.g., "Dua Amrinder Gill Official Audio").
 - Provide a "rationale" explaining exactly WHY you chose this item/song.
 - ITEM COUNT RULES (CRITICAL):
@@ -310,14 +330,30 @@ Output ONLY raw JSON with this exact schema:
             except Exception as ex:
                 print("Playlist injection failed:", ex)
                 
+        # Cache the result before returning
+        try:
+            if redis_client:
+                redis_client.setex(f"roadmap:{query_lower}", 3600, json.dumps(response_json))
+            else:
+                ROADMAP_CACHE[query_lower] = response_json
+        except Exception as e:
+            print(f"Redis set error: {e}")
+            
         return response_json
     except Exception as e:
         raise Exception(f"AI Error: {e}")
 
 def search_youtube(query: str, search_type: str = "education", original_query: str = None):
     cache_key = query.strip().lower()
-    if cache_key in SEARCH_CACHE:
-        return SEARCH_CACHE[cache_key]
+    try:
+        if redis_client:
+            cached = redis_client.get(f"search:{cache_key}")
+            if cached:
+                return json.loads(cached)
+        elif cache_key in SEARCH_CACHE:
+            return SEARCH_CACHE[cache_key]
+    except Exception as e:
+        print(f"Redis search get error: {e}")
 
     ydl_opts_fast = {
         "quiet": True,
@@ -345,7 +381,10 @@ def search_youtube(query: str, search_type: str = "education", original_query: s
                 best = info
                 url = info.get("webpage_url", query)
             else:
-                info = yd.extract_info(f"ytsearch5:{query}", download=False)
+                actual_query = query
+                if search_type == "music" and "audio" not in actual_query.lower():
+                    actual_query = actual_query + " audio"
+                info = yd.extract_info(f"ytsearch5:{actual_query}", download=False)
                 if 'entries' in info and len(info['entries']) > 0:
                     entries = list(info['entries'])
                     valid_entries = [e for e in entries if e.get('view_count') is not None]
@@ -408,9 +447,16 @@ def search_youtube(query: str, search_type: str = "education", original_query: s
                     "channel": channel,
                     "likes": likes
                 }
-                SEARCH_CACHE[cache_key] = result
-                if len(SEARCH_CACHE) > 5000:
-                    SEARCH_CACHE.pop(next(iter(SEARCH_CACHE)))
+                try:
+                    if redis_client:
+                        redis_client.setex(f"search:{cache_key}", 3600, json.dumps(result))
+                    else:
+                        SEARCH_CACHE[cache_key] = result
+                        if len(SEARCH_CACHE) > 5000:
+                            SEARCH_CACHE.pop(next(iter(SEARCH_CACHE)))
+                except Exception as e:
+                    print(f"Redis search set error: {e}")
+                
                 return result
             return None # All videos failed the date filter
     except Exception as e:
