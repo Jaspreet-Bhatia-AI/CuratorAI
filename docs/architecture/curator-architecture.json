@@ -2,34 +2,45 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Curator AI Serverless Architecture",
+    "title": "Curator AI PWA & Cloud Architecture",
     "output": "curator-architecture.html",
     "quality_profile": "showcase"
   },
   "components": [
-    { "id": "users", "type": "external", "label": "Users", "sublabel": "Browser / Desktop", "pos": [40, 300], "size": [150, 60] },
-    { "id": "frontend", "type": "frontend", "label": "React Frontend", "sublabel": "Vite + Tailwind", "pos": [300, 300], "size": [130, 60] },
-    { "id": "tauri", "type": "backend", "label": "Tauri Sidecar", "sublabel": "yt-dlp binary", "pos": [300, 150], "size": [130, 60] },
-    { "id": "gemini", "type": "external", "label": "Google Gemini", "sublabel": "AI API", "pos": [300, 450], "size": [130, 60] },
-    { "id": "supabase_auth", "type": "security", "label": "Supabase Auth", "sublabel": "JWT / OAuth", "pos": [560, 300], "size": [130, 60] },
-    { "id": "supabase_storage", "type": "cloud", "label": "Supabase Storage", "sublabel": "S3 Compatible", "pos": [560, 450], "size": [130, 60] },
-    { "id": "supabase_db", "type": "database", "label": "Supabase DB", "sublabel": "PostgreSQL", "pos": [820, 300], "size": [130, 60] }
+    { "id": "users", "type": "external", "label": "Users", "sublabel": "Browser / PWA", "pos": [40, 300], "size": [150, 60] },
+    
+    { "id": "indexed_db", "type": "database", "label": "IndexedDB", "sublabel": "Offline Media Cache", "pos": [300, 150], "size": [130, 60] },
+    { "id": "pwa_frontend", "type": "frontend", "label": "React PWA", "sublabel": "Vite + Workbox", "pos": [300, 300], "size": [130, 60] },
+    { "id": "supabase_auth", "type": "security", "label": "Supabase Auth", "sublabel": "JWT / OAuth", "pos": [300, 450], "size": [130, 60] },
+    
+    { "id": "gemini", "type": "external", "label": "Google Gemini", "sublabel": "AI API", "pos": [560, 100], "size": [130, 60] },
+    { "id": "fastapi_backend", "type": "backend", "label": "Python Backend", "sublabel": "FastAPI + yt-dlp", "pos": [560, 300], "size": [130, 60] },
+    { "id": "supabase_db", "type": "database", "label": "Supabase DB", "sublabel": "PostgreSQL", "pos": [560, 450], "size": [130, 60] },
+    
+    { "id": "redis_cache", "type": "database", "label": "Redis", "sublabel": "Global Caching", "pos": [820, 300], "size": [130, 60] },
+    { "id": "supabase_storage", "type": "cloud", "label": "Supabase Storage", "sublabel": "S3 Compatible", "pos": [820, 450], "size": [130, 60] }
   ],
   "boundaries": [
-    { "kind": "region", "label": "Supabase Infrastructure", "wraps": ["supabase_auth", "supabase_storage", "supabase_db"] },
-    { "kind": "region", "label": "Client Device", "wraps": ["frontend", "tauri"] }
+    { "kind": "region", "label": "Client Device (Offline)", "wraps": ["pwa_frontend", "indexed_db"] },
+    { "kind": "region", "label": "Cloud Server", "wraps": ["fastapi_backend", "redis_cache"] },
+    { "kind": "region", "label": "Supabase Infrastructure", "wraps": ["supabase_auth", "supabase_db", "supabase_storage"] }
   ],
   "connections": [
-    { "id": "user-frontend", "from": "users", "to": "frontend", "label": "HTTPS" },
-    { "id": "frontend-tauri", "from": "frontend", "to": "tauri", "label": "IPC calls", "fromSide": "top", "toSide": "bottom" },
-    { "id": "frontend-gemini", "from": "frontend", "to": "gemini", "label": "REST API", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
-    { "id": "frontend-auth", "from": "frontend", "to": "supabase_auth", "label": "authenticate" },
-    { "id": "auth-db", "from": "supabase_auth", "to": "supabase_db", "label": "RLS queries" },
-    { "id": "db-storage", "from": "supabase_db", "to": "supabase_storage", "label": "metadata", "fromSide": "bottom", "toSide": "right", "via": [[885, 480]] },
-    { "id": "frontend-storage", "from": "frontend", "to": "supabase_storage", "label": "upload / stream", "variant": "dashed", "fromSide": "right", "toSide": "left", "via": [[480, 330], [480, 480]] }
+    { "id": "user-pwa", "from": "users", "to": "pwa_frontend", "label": "HTTPS" },
+    { "id": "pwa-idb", "from": "pwa_frontend", "to": "indexed_db", "label": "cache media", "fromSide": "top", "toSide": "bottom" },
+    { "id": "pwa-auth", "from": "pwa_frontend", "to": "supabase_auth", "label": "authenticate", "fromSide": "bottom", "toSide": "top", "labelAt": [365, 410] },
+    { "id": "pwa-backend", "from": "pwa_frontend", "to": "fastapi_backend", "label": "REST API" },
+    
+    { "id": "backend-gemini", "from": "fastapi_backend", "to": "gemini", "label": "LLM prompts", "fromSide": "top", "toSide": "bottom", "labelAt": [625, 210] },
+    { "id": "backend-redis", "from": "fastapi_backend", "to": "redis_cache", "label": "cache lookups" },
+    { "id": "backend-db", "from": "fastapi_backend", "to": "supabase_db", "label": "sync metadata", "fromSide": "bottom", "toSide": "top", "labelAt": [625, 410] },
+    { "id": "backend-storage", "from": "fastapi_backend", "to": "supabase_storage", "label": "upload MP3s", "via": [[750, 330], [750, 480]] },
+    
+    { "id": "pwa-db", "from": "pwa_frontend", "to": "supabase_db", "label": "history (RLS)", "variant": "dashed", "fromSide": "right", "toSide": "left", "labelAt": [460, 410], "via": [[500, 330], [500, 480]] },
+    { "id": "pwa-storage", "from": "pwa_frontend", "to": "supabase_storage", "label": "stream audio", "variant": "dashed", "fromSide": "right", "toSide": "bottom", "labelAt": [520, 540], "via": [[520, 330], [520, 560], [885, 560]] }
   ],
   "cards": [
-    { "dot": "cyan", "title": "100% Serverless", "items": ["No Python backend required", "React runs entirely in the browser", "Tauri handles native OS tasks"] },
-    { "dot": "emerald", "title": "Data & Auth", "items": ["Supabase handles user identity", "PostgreSQL with Row Level Security (RLS)", "S3 storage for cloud audio streaming"] }
+    { "dot": "cyan", "title": "100% PWA & Offline", "items": ["Vite PWA handles Service Workers", "IndexedDB caches downloaded media natively", "File System API allows batch desktop exports"] },
+    { "dot": "emerald", "title": "High Performance Backend", "items": ["FastAPI streams downloads directly", "Redis caches Gemini and YouTube searches globally", "Supabase PostgreSQL for user state"] }
   ]
 }
