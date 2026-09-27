@@ -25,30 +25,23 @@ jobs:
           npm install
           npm run build
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.KEY }}
-
-      - name: Add Server to Known Hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-
       - name: Sync Backend and Frontend to Server
         run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+          
           # Sync backend (excluding venv and pycache)
-          rsync -avz --exclude 'venv' --exclude '__pycache__' backend/ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/${{ secrets.USERNAME }}/curator-ai/backend/
+          sshpass -p "${{ secrets.KEY }}" rsync -avz -e "ssh -o StrictHostKeyChecking=no" --exclude 'venv' --exclude '__pycache__' backend/ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/${{ secrets.USERNAME }}/curator-ai/backend/
           
           # Sync built frontend (dist)
-          rsync -avz frontend/dist/ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/${{ secrets.USERNAME }}/curator-ai/dist/
+          sshpass -p "${{ secrets.KEY }}" rsync -avz -e "ssh -o StrictHostKeyChecking=no" frontend/dist/ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/${{ secrets.USERNAME }}/curator-ai/dist/
 
       - name: Restart Backend and Fix Permissions
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
+          password: ${{ secrets.KEY }}
           script: |
             cd /home/${{ secrets.USERNAME }}/curator-ai/backend
             source venv/bin/activate
