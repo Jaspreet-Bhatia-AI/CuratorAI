@@ -22,6 +22,8 @@ jobs:
       - name: Build Frontend
         run: |
           cd frontend
+          echo "VITE_SUPABASE_URL=https://zcbulmwddycalcxuaykz.supabase.co" > .env
+          echo "VITE_SUPABASE_ANON_KEY=sb_publishable_YlbR6VdBm0hAH7N1oHowTg_eGwDa8F7" >> .env
           npm install
           npm run build
 
