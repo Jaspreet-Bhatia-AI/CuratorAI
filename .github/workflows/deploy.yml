@@ -1,0 +1,59 @@
+name: Deploy Curator AI to VPS
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Add Server to Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 52.76.154.38 >> ~/.ssh/known_hosts
+
+      - name: Sync Backend and Frontend to Server
+        run: |
+          # Sync backend (excluding venv and pycache)
+          rsync -avz --exclude 'venv' --exclude '__pycache__' backend/ ubuntu@52.76.154.38:/home/ubuntu/curator-ai/backend/
+          
+          # Sync built frontend (dist)
+          rsync -avz frontend/dist/ ubuntu@52.76.154.38:/home/ubuntu/curator-ai/dist/
+
+      - name: Restart Backend and Fix Permissions
+        uses: appleboy/ssh-action@master
+        with:
+          host: 52.76.154.38
+          username: ubuntu
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/curator-ai/backend
+            source venv/bin/activate
+            pip install --no-cache-dir -r requirements.txt
+            pm2 restart curator-backend
+            
+            # Ensure Apache permissions are correct for frontend files
+            sudo chmod -R 755 /home/ubuntu/curator-ai/dist
