@@ -7,6 +7,10 @@ import Home from './pages/Home';
 import Studio from './pages/Studio';
 import History from './pages/History';
 import Library from './pages/Library';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import CookieConsent from './components/CookieConsent';
+import Footer from './components/Footer';
 import NotFound from './pages/NotFound';
 import { Toaster } from 'react-hot-toast';
 import { AppProvider } from './context/AppContext';
@@ -43,9 +47,12 @@ function LayoutEngine() {
             <Route path="/roadmap" element={<Navigate to="/" replace />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/library" element={<Library />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>
+        <Footer />
       </main>
       
       <BottomNav 
@@ -53,6 +60,7 @@ function LayoutEngine() {
         openAuthModal={() => setIsLoginModalOpen(true)} 
         openProfileModal={() => setIsProfileModalOpen(true)} 
       />
+      <CookieConsent />
       <FloatingPlayer />
       
       <StartupSyncModal />
