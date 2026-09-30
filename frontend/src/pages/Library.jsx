@@ -196,15 +196,22 @@ export default function Library() {
         </td>
         <td className="py-4 px-6 text-right">
           <div className="flex items-center justify-end gap-2">
-            {!isCloud && (
-              <button 
-                onClick={(e) => { e.stopPropagation(); isCurrentlyPlaying ? togglePlay() : playTrack({ ...item, source: 'local' }); }} 
-                className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-105 transition-transform" 
-                title={isCurrentlyPlaying && isPlaying ? "Pause" : "Play"}
-              >
-                <span className="material-symbols-outlined">{isCurrentlyPlaying && isPlaying ? "pause" : "play_arrow"}</span>
-              </button>
-            )}
+            <button 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                if (isCurrentlyPlaying) {
+                  togglePlay();
+                } else {
+                  const list = isCloud ? cloudMedia : (activeTab==='audio' ? offlineAudio : offlineVideo);
+                  const idx = list.findIndex(x => x.id === item.id);
+                  playTrack({ ...item, source: isCloud ? 'cloud' : 'local' }, list, idx);
+                }
+              }} 
+              className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-105 transition-transform" 
+              title={isCurrentlyPlaying && isPlaying ? "Pause" : "Play"}
+            >
+              <span className="material-symbols-outlined">{isCurrentlyPlaying && isPlaying ? "pause" : "play_arrow"}</span>
+            </button>
             
             {isCloud ? (
               <button 

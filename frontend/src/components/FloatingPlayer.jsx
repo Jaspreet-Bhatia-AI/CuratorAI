@@ -2,7 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function FloatingPlayer() {
-  const { currentTrack, isPlaying, togglePlay } = useAppContext();
+  const { currentTrack, isPlaying, togglePlay, playTrack, playNext, playPrev, queue, queueIndex } = useAppContext();
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false);
+  const [volume, setVolume] = useState(1.0);
+  const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -21,7 +25,10 @@ export default function FloatingPlayer() {
         if (active) setAudioUrl(url);
       } else if (currentTrack.source === 'local') {
         if (currentTrack.blob) {
-          url = URL.createObjectURL(currentTrack.blob);
+          // Fix offline audio missing MIME type
+          const blobType = currentTrack.blob.type || 'audio/mpeg';
+          const properBlob = new Blob([currentTrack.blob], { type: blobType });
+          url = URL.createObjectURL(properBlob);
           if (active) setAudioUrl(url);
         } else if (currentTrack.url) {
           url = currentTrack.url;
@@ -42,6 +49,7 @@ export default function FloatingPlayer() {
 
   useEffect(() => {
     if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
       if (isPlaying) {
         audioRef.current.play().catch(e => console.error("Audio play failed:", e));
       } else {
@@ -86,7 +94,7 @@ export default function FloatingPlayer() {
           ref={audioRef} 
           src={audioUrl} 
           onTimeUpdate={handleTimeUpdate}
-          onEnded={() => togglePlay()}
+          onEnded={() => { if(isRepeat && audioRef.current) { audioRef.current.currentTime=0; audioRef.current.play(); } else { playNext(); } }}
         />
       )}
       
@@ -119,12 +127,8 @@ export default function FloatingPlayer() {
         {/* Center Section (Controls) */}
         <div className="flex flex-col items-center gap-1.5 w-full md:w-5/12">
           <div className="flex items-center gap-4">
-            <button aria-label="Shuffle" className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-1 rounded-full">
-              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">shuffle</span>
-            </button>
-            <button aria-label="Skip Previous" className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center p-1 rounded-full">
-              <span className="material-symbols-outlined text-[22px]" aria-hidden="true">skip_previous</span>
-            </button>
+            <button aria-label="Shuffle" onClick={() => setIsShuffle(!isShuffle)} className={`transition-colors flex items-center justify-center p-1 rounded-full ${isShuffle ? "text-primary bg-primary/10" : "text-on-surface-variant hover:text-on-surface"}`}><span className="material-symbols-outlined text-[18px]" aria-hidden="true">shuffle</span></button>
+            <button aria-label="Skip Previous" onClick={() => playPrev()} className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center p-1 rounded-full active:scale-95"><span className="material-symbols-outlined text-[22px]" aria-hidden="true">skip_previous</span></button>
             <button 
               aria-label={isPlaying ? 'Pause' : 'Play'}
               onClick={togglePlay}
@@ -132,12 +136,8 @@ export default function FloatingPlayer() {
             >
               <span className="material-symbols-outlined text-[22px]" aria-hidden="true">{isPlaying ? 'pause' : 'play_arrow'}</span>
             </button>
-            <button aria-label="Skip Next" className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center p-1 rounded-full">
-              <span className="material-symbols-outlined text-[22px]" aria-hidden="true">skip_next</span>
-            </button>
-            <button aria-label="Repeat" className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center p-1 rounded-full">
-              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">repeat</span>
-            </button>
+            <button aria-label="Skip Next" onClick={() => playNext()} className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center p-1 rounded-full active:scale-95"><span className="material-symbols-outlined text-[22px]" aria-hidden="true">skip_next</span></button>
+            <button aria-label="Repeat" onClick={() => setIsRepeat(!isRepeat)} className={`transition-colors flex items-center justify-center p-1 rounded-full ${isRepeat ? "text-primary bg-primary/10" : "text-on-surface-variant hover:text-on-surface"}`}><span className="material-symbols-outlined text-[18px]" aria-hidden="true">repeat</span></button>
           </div>
           
           <div className="flex items-center gap-2 w-full">
@@ -168,11 +168,21 @@ export default function FloatingPlayer() {
             1.0x
           </button>
           <div className="flex items-center gap-1">
-            <button className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">volume_up</span>
+            <button onClick={() => setIsMuted(!isMuted)} className="text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">{isMuted || volume === 0 ? 'volume_off' : (volume < 0.5 ? 'volume_down' : 'volume_up')}</span>
             </button>
-            <div className="w-16 h-1 bg-surface-container-high rounded-full overflow-hidden cursor-pointer relative group">
-              <div className="bg-on-surface-variant group-hover:bg-primary h-full rounded-full transition-colors" style={{ width: '75%' }}></div>
+            <div 
+              className="w-16 h-1.5 bg-surface-container-high rounded-full overflow-hidden cursor-pointer relative group"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                let newVol = (e.clientX - rect.left) / rect.width;
+                if(newVol < 0) newVol = 0;
+                if(newVol > 1) newVol = 1;
+                setVolume(newVol);
+                setIsMuted(false);
+              }}
+            >
+              <div className="bg-on-surface-variant group-hover:bg-primary h-full rounded-full transition-colors" style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}></div>
             </div>
           </div>
         </div>

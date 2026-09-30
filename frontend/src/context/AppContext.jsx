@@ -18,6 +18,8 @@ export function AppProvider({ children }) {
   // Audio Player State
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [queue, setQueue] = useState([]);
+  const [queueIndex, setQueueIndex] = useState(-1);
 
   const handleSearch = async (query) => {
     if (!query) return;
@@ -134,9 +136,32 @@ export function AppProvider({ children }) {
     setIsLoading(false);
   };
 
-  const playTrack = (track) => {
+  
+  const playTrack = (track, list = [], index = -1) => {
     setCurrentTrack(track);
     setIsPlaying(true);
+    if (list.length > 0) {
+      setQueue(list);
+      setQueueIndex(index);
+    }
+  };
+
+  const playNext = () => {
+    if (queue.length > 0 && queueIndex < queue.length - 1) {
+      const nextIndex = queueIndex + 1;
+      setQueueIndex(nextIndex);
+      setCurrentTrack(queue[nextIndex]);
+      setIsPlaying(true);
+    }
+  };
+
+  const playPrev = () => {
+    if (queue.length > 0 && queueIndex > 0) {
+      const prevIndex = queueIndex - 1;
+      setQueueIndex(prevIndex);
+      setCurrentTrack(queue[prevIndex]);
+      setIsPlaying(true);
+    }
   };
 
   const togglePlay = () => {
@@ -152,7 +177,7 @@ export function AppProvider({ children }) {
       roadmap, curriculum, setCurriculum,
       isLoading, selectedTopic, setSelectedTopic,
       handleSearch,
-      currentTrack, isPlaying, playTrack, togglePlay, setIsPlaying
+      currentTrack, isPlaying, playTrack, togglePlay, setIsPlaying, playNext, playPrev, queue, queueIndex
     }}>
       {children}
     </AppContext.Provider>
